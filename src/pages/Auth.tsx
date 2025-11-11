@@ -7,13 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
+import { authService } from '@/services/authService';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isResetLoading, setIsResetLoading] = useState(false);
@@ -35,6 +35,7 @@ const Auth = () => {
     hospitalAffiliation: '',
   });
   const navigate = useNavigate();
+  const { login, register, isLoading } = useAuth();
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -52,11 +53,7 @@ const Auth = () => {
 
     setIsResetLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
+      await authService.requestPasswordReset(forgotPasswordEmail);
 
       toast({
         title: "Reset email sent",
@@ -68,7 +65,7 @@ const Auth = () => {
     } catch (error: any) {
       toast({
         title: "Reset failed",
-        description: error.message,
+        description: error.message || "Failed to send reset email",
         variant: "destructive",
       });
     } finally {
@@ -87,39 +84,20 @@ const Auth = () => {
       return;
     }
 
-    setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-
-      if (error) {
-        console.error('🔧 Auth: Login error', error);
-        throw error;
-      }
-
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
-
-      // Reset loading state immediately after successful login
-      setIsLoading(false);
-
-      // Add a small delay and then redirect manually
+      const loggedInUser = await login(formData.email, formData.password, formData.role);
+      
+      // Navigate based on actual user role from the response
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
+        if (loggedInUser.role === 'doctor') {
+          navigate('/doctor/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
+      }, 500);
     } catch (error: any) {
+      // Error is already handled in AuthContext
       console.error('🔧 Auth: Login failed', error);
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
-      setIsLoading(false);
     }
   };
 
@@ -134,62 +112,54 @@ const Auth = () => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            full_name: formData.name,
-            role: formData.role,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // The profile will be created automatically by the trigger
-        // But let's update it with additional data
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            full_name: formData.name,
-            phone: formData.phone,
-            date_of_birth: formData.dateOfBirth || null,
-            gender: formData.gender || null,
-            blood_group: formData.bloodGroup || null,
-            allergies: formData.allergies || null,
-            emergency_contact_name: formData.emergencyContactName || null,
-            emergency_contact_phone: formData.emergencyContactPhone || null,
-            emergency_contact_relationship: formData.emergencyContactRelationship || null,
-            specialization: formData.role === 'doctor' ? formData.specialization : null,
-            license_number: formData.role === 'doctor' ? formData.licenseNumber : null,
-            hospital_affiliation: formData.role === 'doctor' ? formData.hospitalAffiliation : null,
-          })
-          .eq('user_id', data.user.id);
-
-        if (profileError) console.error('Profile update error:', profileError);
-      }
-
+    // Validate doctor-specific fields
+    if (formData.role === 'doctor' && (!formData.licenseNumber || !formData.specialization)) {
       toast({
-        title: "Registration successful",
-        description: "Please check your email to confirm your account.",
-      });
-    } catch (error: any) {
-      console.error('🔧 Auth: Registration failed', error);
-      toast({
-        title: "Registration failed",
-        description: error.message,
+        title: "Missing information",
+        description: "Please fill in license number and specialization for doctor registration.",
         variant: "destructive",
       });
-    } finally {
-      // Reset loading state after a short delay
+      return;
+    }
+
+    try {
+      // Helper to convert empty strings to undefined
+      const undefinedIfEmpty = (value: string) => (value === '' ? undefined : value);
+      
+      const userData = {
+        email: formData.email,
+        name: formData.name,
+        phone: undefinedIfEmpty(formData.phone),
+        role: formData.role,
+        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
+        gender: undefinedIfEmpty(formData.gender) as 'male' | 'female' | 'other' | undefined,
+        bloodGroup: undefinedIfEmpty(formData.bloodGroup),
+        allergies: formData.allergies ? formData.allergies.split(',').map(a => a.trim()).filter(a => a) : [],
+        emergencyContact: formData.emergencyContactName ? {
+          name: formData.emergencyContactName,
+          phone: undefinedIfEmpty(formData.emergencyContactPhone),
+          relationship: undefinedIfEmpty(formData.emergencyContactRelationship),
+        } : undefined,
+        ...(formData.role === 'doctor' ? {
+          specialization: undefinedIfEmpty(formData.specialization),
+          licenseNumber: undefinedIfEmpty(formData.licenseNumber),
+          hospital: undefinedIfEmpty(formData.hospitalAffiliation),
+        } : {}),
+      };
+
+      const registeredUser = await register(userData, formData.password);
+      
+      // Navigate based on actual user role from the response
       setTimeout(() => {
-        setIsLoading(false);
-      }, 1000);
+        if (registeredUser.role === 'doctor') {
+          navigate('/doctor/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
+      }, 500);
+    } catch (error: any) {
+      // Error is already handled in AuthContext
+      console.error('🔧 Auth: Registration failed', error);
     }
   };
 

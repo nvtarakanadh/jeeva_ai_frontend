@@ -8,8 +8,8 @@ interface AuthContextType {
   user: (Patient | Doctor) & { id: string } | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string, role?: UserRole) => Promise<void>;
-  register: (userData: Partial<Patient | Doctor>, password: string) => Promise<void>;
+  login: (email: string, password: string, role?: UserRole) => Promise<(Patient | Doctor) & { id: string }>;
+  register: (userData: Partial<Patient | Doctor>, password: string) => Promise<(Patient | Doctor) & { id: string }>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<Patient | Doctor>) => Promise<void>;
 }
@@ -45,17 +45,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return {
         ...baseUser,
         specialization: profile?.specialization || 'General Medicine',
-        licenseNumber: profile?.license_number || undefined,
-        hospital: profile?.hospital || undefined,
-        experience: profile?.experience || 0,
-        consultationFee: profile?.consultation_fee ? Number(profile.consultation_fee) : 0,
-        availableSlots: profile?.available_slots || [],
-        rating: profile?.rating ? Number(profile.rating) : 0,
-        totalConsultations: profile?.total_consultations || 0,
-      } as Doctor & { id: string };
+        licenseNumber: profile?.license_number || '',
+        hospitalAffiliation: profile?.hospital || '',
+        verified: false,
+      } as unknown as Doctor & { id: string };
     }
 
-    return baseUser as Patient & { id: string };
+    return baseUser as unknown as Patient & { id: string };
   };
 
   // Initialize authentication
@@ -80,7 +76,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     initializeAuth();
   }, []);
 
-  const login = async (email: string, password: string, role: UserRole = 'patient') => {
+  const login = async (email: string, password: string, role: UserRole = 'patient'): Promise<(Patient | Doctor) & { id: string }> => {
     try {
       setIsLoading(true);
       console.log('🔐 Attempting login for:', email);
@@ -94,6 +90,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         title: "Login successful",
         description: `Welcome back, ${userData.email}!`,
       });
+      
+      return userData;
     } catch (error: any) {
       console.error('🔐 Login failed:', error);
       toast({
@@ -107,27 +105,43 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const register = async (userData: Partial<Patient | Doctor>, password: string) => {
+  const register = async (userData: Partial<Patient | Doctor>, password: string): Promise<(Patient | Doctor) & { id: string }> => {
     try {
       setIsLoading(true);
       console.log('🔐 Attempting registration for:', userData.email);
 
-      const registerData = {
+      const patientData = userData as Partial<Patient>;
+      const doctorData = userData as Partial<Doctor>;
+      const anyData = userData as any; // For fields not in type definitions
+      
+      // Helper function to convert empty strings to null, but keep valid values
+      const nullIfEmpty = (value: any) => {
+        if (value === '' || value === undefined || value === null) {
+          return null;
+        }
+        return value;
+      };
+      
+      const registerData: any = {
         email: userData.email!,
         password,
         password_confirm: password,
         full_name: userData.name || userData.email!.split('@')[0],
-        phone: userData.phone || '',
+        phone: userData.phone ? userData.phone : null,
         role: userData.role || 'patient',
-        date_of_birth: userData.dateOfBirth?.toISOString().split('T')[0],
-        gender: userData.gender,
-        blood_group: userData.bloodGroup,
+        date_of_birth: patientData.dateOfBirth?.toISOString().split('T')[0] || null,
+        gender: nullIfEmpty(patientData.gender),
+        blood_group: nullIfEmpty(anyData.bloodGroup || anyData.bloodType),
+        allergies: patientData.allergies || [],
+        emergency_contact_name: nullIfEmpty(patientData.emergencyContact?.name),
+        emergency_contact_phone: nullIfEmpty(patientData.emergencyContact?.phone),
+        emergency_contact_relationship: nullIfEmpty(patientData.emergencyContact?.relationship),
         ...(userData.role === 'doctor' ? {
-          specialization: (userData as Doctor).specialization,
-          license_number: (userData as Doctor).licenseNumber,
-          hospital: (userData as Doctor).hospital,
-          experience: (userData as Doctor).experience,
-          consultation_fee: (userData as Doctor).consultationFee,
+          specialization: nullIfEmpty(doctorData.specialization),
+          license_number: nullIfEmpty(doctorData.licenseNumber),
+          hospital: nullIfEmpty(doctorData.hospitalAffiliation),
+          experience: anyData.experience || 0,
+          consultation_fee: anyData.consultationFee || 0,
         } : {}),
       };
 
@@ -140,6 +154,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         title: "Registration successful",
         description: "Your account has been created successfully.",
       });
+      
+      return convertedUser;
     } catch (error: any) {
       console.error('🔐 Registration failed:', error);
       toast({
@@ -185,25 +201,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       console.log('🔐 Updating profile...');
       
+      const patientUpdates = updates as Partial<Patient>;
+      const doctorUpdates = updates as Partial<Doctor>;
+      const anyUpdates = updates as any; // For fields not in type definitions
+      
       const profileUpdates: Partial<UserProfile> = {
         full_name: updates.name,
-        phone: updates.phone || '',
-        date_of_birth: updates.dateOfBirth?.toISOString().split('T')[0],
-        gender: updates.gender,
-        blood_group: updates.bloodGroup,
-        allergies: updates.allergies || [],
-        emergency_contact_name: updates.emergencyContact?.name,
-        emergency_contact_phone: updates.emergencyContact?.phone,
-        emergency_contact_relationship: updates.emergencyContact?.relationship,
+        date_of_birth: patientUpdates.dateOfBirth?.toISOString().split('T')[0],
+        gender: patientUpdates.gender,
+        blood_group: anyUpdates.bloodGroup || anyUpdates.bloodType,
+        allergies: patientUpdates.allergies || [],
+        emergency_contact_name: patientUpdates.emergencyContact?.name,
+        emergency_contact_phone: patientUpdates.emergencyContact?.phone,
+        emergency_contact_relationship: patientUpdates.emergencyContact?.relationship,
       };
 
       if (user.role === 'doctor') {
-        profileUpdates.specialization = (updates as Doctor).specialization;
-        profileUpdates.license_number = (updates as Doctor).licenseNumber;
-        profileUpdates.hospital = (updates as Doctor).hospital;
-        profileUpdates.experience = (updates as Doctor).experience;
-        profileUpdates.consultation_fee = (updates as Doctor).consultationFee;
-        profileUpdates.available_slots = (updates as Doctor).availableSlots;
+        profileUpdates.specialization = doctorUpdates.specialization;
+        profileUpdates.license_number = doctorUpdates.licenseNumber;
+        profileUpdates.hospital = doctorUpdates.hospitalAffiliation;
+        profileUpdates.experience = anyUpdates.experience;
+        profileUpdates.consultation_fee = anyUpdates.consultationFee;
+        profileUpdates.available_slots = anyUpdates.availableSlots || [];
       }
 
       const updatedProfile = await authService.updateProfile(profileUpdates);

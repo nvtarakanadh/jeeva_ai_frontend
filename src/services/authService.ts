@@ -110,8 +110,27 @@ class AuthService {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Login failed' }));
-      throw new Error(error.detail || error.message || 'Login failed');
+      const errorData = await response.json().catch(() => ({ detail: 'Login failed' }));
+      
+      // Extract error messages from Django REST Framework validation errors
+      let errorMessage = errorData.detail || errorData.message || 'Login failed';
+      
+      // Handle nested validation errors
+      if (typeof errorData === 'object' && !errorData.detail) {
+        const errorMessages: string[] = [];
+        for (const [field, errors] of Object.entries(errorData)) {
+          if (Array.isArray(errors)) {
+            errorMessages.push(`${field}: ${errors.join(', ')}`);
+          } else if (typeof errors === 'string') {
+            errorMessages.push(`${field}: ${errors}`);
+          }
+        }
+        if (errorMessages.length > 0) {
+          errorMessage = errorMessages.join('. ');
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data: AuthResponse = await response.json();
@@ -129,8 +148,46 @@ class AuthService {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Registration failed' }));
-      throw new Error(error.detail || error.message || 'Registration failed');
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { detail: `Registration failed with status ${response.status}` };
+      }
+      
+      // Extract error messages from Django REST Framework validation errors
+      let errorMessage = errorData.detail || errorData.message || errorData.error || 'Registration failed';
+      
+      // Handle specific error cases with user-friendly messages
+      if (errorMessage.includes('duplicate key') || errorMessage.includes('already exists')) {
+        if (errorMessage.includes('email')) {
+          errorMessage = 'This email is already registered. Please use a different email or try logging in.';
+        } else if (errorMessage.includes('username')) {
+          errorMessage = 'This username is already taken. Please choose a different username.';
+        } else {
+          errorMessage = 'An account with this information already exists. Please try logging in.';
+        }
+      }
+      
+      // Handle nested validation errors (common in DRF)
+      if (typeof errorData === 'object' && !errorData.detail && !errorData.message && !errorData.error) {
+        const errorMessages: string[] = [];
+        for (const [field, errors] of Object.entries(errorData)) {
+          if (Array.isArray(errors)) {
+            errorMessages.push(`${field}: ${errors.join(', ')}`);
+          } else if (typeof errors === 'string') {
+            errorMessages.push(`${field}: ${errors}`);
+          } else if (Array.isArray(errors) && errors.length > 0) {
+            errorMessages.push(`${field}: ${errors[0]}`);
+          }
+        }
+        if (errorMessages.length > 0) {
+          errorMessage = errorMessages.join('. ');
+        }
+      }
+      
+      console.error('Registration error details:', errorData);
+      throw new Error(errorMessage);
     }
 
     const result: AuthResponse = await response.json();
@@ -218,8 +275,33 @@ class AuthService {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Password reset request failed' }));
-      throw new Error(error.detail || error.message || 'Password reset request failed');
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { detail: `Password reset request failed with status ${response.status}` };
+      }
+      
+      // Extract error messages from Django REST Framework validation errors
+      let errorMessage = errorData.detail || errorData.message || 'Password reset request failed';
+      
+      // Handle nested validation errors
+      if (typeof errorData === 'object' && !errorData.detail && !errorData.message) {
+        const errorMessages: string[] = [];
+        for (const [field, errors] of Object.entries(errorData)) {
+          if (Array.isArray(errors)) {
+            errorMessages.push(`${field}: ${errors.join(', ')}`);
+          } else if (typeof errors === 'string') {
+            errorMessages.push(`${field}: ${errors}`);
+          }
+        }
+        if (errorMessages.length > 0) {
+          errorMessage = errorMessages.join('. ');
+        }
+      }
+      
+      console.error('Password reset error details:', errorData);
+      throw new Error(errorMessage);
     }
   }
 
