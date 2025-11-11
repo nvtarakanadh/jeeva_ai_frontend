@@ -2,23 +2,11 @@
 // This replaces the old complex frontend AI analysis with backend integration
 import { supabase } from '@/integrations/supabase/client';
 
-// Railway URL configuration - Your actual Railway URL
-const RAILWAY_BACKEND_URL = 'https://web-production-47a17.up.railway.app/api/ai';
-
-// Determine the correct API URL based on environment
+// Backend URL configuration
+// Use environment variable or fallback to localhost for development
 const getAPIBaseURL = () => {
-  // Check if we're in production (Vercel)
-  const isProduction = window.location.hostname.includes('vercel.app') || 
-                      window.location.hostname.includes('netlify.app') ||
-                      !window.location.hostname.includes('localhost');
-  
-  if (isProduction) {
-    // Use Railway backend URL
-    return RAILWAY_BACKEND_URL;
-  }
-  
-  // Development fallback
-  return import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'http://127.0.0.1:8000/api/ai';
+  const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'http://localhost:8000';
+  return `${baseUrl}/api/ai`;
 };
 
 const API_BASE_URL = getAPIBaseURL();

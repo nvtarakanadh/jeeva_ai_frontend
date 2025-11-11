@@ -3,7 +3,9 @@
  * Handles communication with the Django backend for MRI/CT scan analysis using Dr7.ai API
  */
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api/ai';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
+  ? `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}/api/ai`
+  : 'http://localhost:8000/api/ai';
 
 export interface MRI_CT_AnalysisRequest {
   record_id: string;
