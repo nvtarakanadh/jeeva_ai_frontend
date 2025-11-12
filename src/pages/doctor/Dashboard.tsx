@@ -75,9 +75,10 @@ const DoctorDashboard = () => {
       try {
         // Use user profile ID from the user object (Django API)
         // The profile ID should be available in user.profile.id
-        if (user.profile?.id) {
-          console.log('✅ Found doctor profile ID from user object:', user.profile.id);
-          setDoctorProfileId(user.profile.id);
+        const userWithProfile = user as any; // Type assertion for profile access
+        if (userWithProfile.profile?.id) {
+          console.log('✅ Found doctor profile ID from user object:', userWithProfile.profile.id);
+          setDoctorProfileId(userWithProfile.profile.id);
         } else if (user.id) {
           // Fallback: use user ID as profile ID (they should be the same in Django)
           console.log('⚠️ Profile ID not found, using user ID:', user.id);
@@ -699,12 +700,17 @@ const DoctorDashboard = () => {
         clearTimeout(timeoutId);
       }
     };
-  }, [doctorProfileId]);
+  }, [doctorProfileId, loadEvents, loadPatients]);
 
-  // Real-time subscription for consultations
+  // Real-time subscription for consultations - DISABLED (Supabase removed)
   useEffect(() => {
     if (!doctorProfileId) return;
 
+    // Supabase removed - real-time subscriptions disabled
+    console.warn('⚠️ Real-time subscriptions disabled - Supabase removed');
+    return;
+
+    /* OLD SUPABASE CODE - REMOVED
     let subscription: any;
 
     const setupRealtimeSubscription = () => {
@@ -743,6 +749,7 @@ const DoctorDashboard = () => {
         supabase.removeChannel(subscription);
       }
     };
+    */
   }, [doctorProfileId]);
 
   // Memoize quick stats to prevent unnecessary re-renders
