@@ -75,7 +75,6 @@ export default defineConfig({
       'react-router-dom',
       'lucide-react',
       'date-fns',
-      '@supabase/supabase-js'
     ],
     exclude: [
       // Exclude heavy dependencies that are loaded on demand

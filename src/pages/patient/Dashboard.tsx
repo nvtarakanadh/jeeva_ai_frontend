@@ -840,23 +840,23 @@ const PatientDashboard = () => {
       />
 
       {/* Day View Modal */}
-        <DayViewModal
-          isOpen={isDayViewOpen}
-          onClose={() => {
-            setIsDayViewOpen(false);
-            setDayViewDate(null);
-          }}
+      <DayViewModal
+        isOpen={isDayViewOpen}
+        onClose={() => {
+          setIsDayViewOpen(false);
+          setDayViewDate(null);
+        }}
         selectedDate={dayViewDate || new Date()}
-          events={convertToDayViewEvents(appointments)}
+        events={convertToDayViewEvents(appointments)}
         onScheduleEvent={() => {}}
         onEditEvent={() => {}}
         onDeleteEvent={() => {}}
         onMoveEvent={() => {}}
         onResizeEvent={() => {}}
-          isPatientView={true}
+        isPatientView={true}
         onSlotClick={handleTimeSlotClick}
-          doctors={doctors}
-          testCenters={testCenters}
+        doctors={doctors}
+        testCenters={testCenters}
       />
     </div>
   );
