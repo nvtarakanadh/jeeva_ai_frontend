@@ -53,7 +53,15 @@ const Auth = () => {
 
     setIsResetLoading(true);
     try {
-      await authService.requestPasswordReset(forgotPasswordEmail);
+      // Add a safety timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request is taking too long. This might be a CORS issue. Please check backend configuration.')), 65000);
+      });
+      
+      await Promise.race([
+        authService.requestPasswordReset(forgotPasswordEmail),
+        timeoutPromise
+      ]) as Promise<void>;
 
       toast({
         title: "Reset email sent",
@@ -63,9 +71,10 @@ const Auth = () => {
       setIsForgotPasswordOpen(false);
       setForgotPasswordEmail('');
     } catch (error: any) {
+      console.error('🔧 Password reset error:', error);
       toast({
         title: "Reset failed",
-        description: error.message || "Failed to send reset email",
+        description: error.message || "Failed to send reset email. Please check if CORS is configured on the backend.",
         variant: "destructive",
       });
     } finally {

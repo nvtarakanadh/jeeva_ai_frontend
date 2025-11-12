@@ -335,13 +335,28 @@ class AuthService {
       }
     } catch (error: any) {
       clearTimeout(timeoutId);
+      
+      // Handle CORS errors specifically
+      if (error.message && error.message.includes('CORS')) {
+        throw new Error('CORS error: Backend is not allowing requests from this domain. Please check CORS configuration on the backend.');
+      }
+      
+      // Handle network errors
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        throw new Error('Network error: Cannot connect to the server. The backend may be down or CORS is blocking the request. Please check the backend status.');
+      }
+      
       if (error.name === 'AbortError') {
-        throw new Error('Request timeout. Please check your internet connection and try again.');
+        throw new Error('Request timeout. The server is taking too long to respond. This may be because the backend is spinning up (Render free tier) or CORS is blocking the request. Please check backend CORS configuration.');
       }
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error(`Cannot connect to server. Please check if the backend is running at ${API_BASE_URL}`);
+      
+      // Re-throw if it's already a proper Error with message
+      if (error instanceof Error) {
+        throw error;
       }
-      throw error;
+      
+      // Fallback for unknown errors
+      throw new Error(`Password reset failed: ${error.message || 'Unknown error'}`);
     }
   }
 
