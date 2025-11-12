@@ -35,10 +35,14 @@ const PatientDashboard = () => {
   const [doctors, setDoctors] = useState<Array<{ id: string; name: string; specialization?: string }>>([]);
   const [testCenters, setTestCenters] = useState<Array<{ id: string; name: string; address?: string }>>([]);
 
-  // Function to reload ALL appointments (for blocking logic)
+  // Function to reload ALL appointments (for blocking logic) - DISABLED (Supabase removed)
   const reloadAllAppointments = async () => {
     if (!user?.id) return;
     
+    console.log('⚠️ reloadAllAppointments disabled (Supabase removed)');
+    return;
+    
+    /* OLD SUPABASE CODE - REMOVED
     try {
       // Load ALL appointments for blocking (not just patient's own)
       const { data: allConsultations, error: allConsultationError } = await supabase
@@ -115,10 +119,14 @@ const PatientDashboard = () => {
     }
   };
 
-  // Function to reload appointments (including all appointments for blocking)
+  // Function to reload appointments (including all appointments for blocking) - DISABLED (Supabase removed)
   const reloadAppointments = async () => {
     if (!user?.id) return;
     
+    console.log('⚠️ reloadAppointments disabled (Supabase removed)');
+    return;
+    
+    /* OLD SUPABASE CODE - REMOVED
     try {
       // Get patient profile
       const { data: profileData, error: profileError } = await supabase
