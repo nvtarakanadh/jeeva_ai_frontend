@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Upload, FileText, Image, Download, Brain, Search, Filter, Eye, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { HealthRecord, RecordType } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { useAuth } from '@/contexts/AuthContext';
 import { createHealthRecord } from '@/services/healthRecordsService';
 import { analyzeHealthRecordWithAI, AIAnalysisResult } from '@/services/aiAnalysisService';

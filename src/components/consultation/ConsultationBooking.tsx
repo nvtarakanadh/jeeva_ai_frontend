@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { ButtonLoadingSpinner } from '@/components/ui/loading-spinner';
 import ConsultationConsentRequest from '@/components/consent/ConsultationConsentRequest';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { useAuth } from '@/contexts/AuthContext';
 import { autoMatchRecords, createConsultationWithSharedRecords, type SharedRecord } from '@/services/recordSharingService';
 

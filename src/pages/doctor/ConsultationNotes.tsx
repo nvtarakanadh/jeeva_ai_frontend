@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getConsultationNotesForDoctor, createConsultationNote, ConsultationNote } from '@/services/prescriptionService';
 import { getPatientsForDoctor } from '@/services/consentService';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { format } from 'date-fns';
 import { PageLoadingSpinner } from '@/components/ui/loading-spinner';
 import { useDropzone } from 'react-dropzone';

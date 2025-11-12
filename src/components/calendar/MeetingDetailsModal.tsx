@@ -9,7 +9,7 @@ import AIAnalysisModal from '@/components/ai/AIAnalysisModal';
 import { toast } from '@/hooks/use-toast';
 import { Calendar, Clock, User, Stethoscope, Briefcase, Activity, X, FileText, Eye, Sparkles, Brain } from 'lucide-react';
 import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 interface MeetingDetailsModalProps {
   event: CalendarEvent | null;

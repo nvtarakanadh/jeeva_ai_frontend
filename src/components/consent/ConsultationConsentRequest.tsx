@@ -8,7 +8,7 @@ import { Shield, Clock, CheckCircle, XCircle, User, Calendar, FileText, Pill, St
 import { toast } from '@/hooks/use-toast';
 import { createConsentRequest } from '@/services/consentService';
 import { RecordType } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 interface ConsultationConsentRequestProps {
   patientId: string;

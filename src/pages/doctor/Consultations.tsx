@@ -17,7 +17,7 @@ import { AIAnalysisModal } from '@/components/ai/AIAnalysisModal';
 import { toast } from '@/hooks/use-toast';
 import CreatePrescription from '@/components/prescription/CreatePrescription';
 import AIAnalysisTags from '@/components/ai/AIAnalysisTags';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 // Render modals using React Portal outside the main component
 const ModalPortal = ({ isAIModalOpen, onCloseAIModal, selectedRecordForAI, onCloseFileViewer, viewingFile }) => {
