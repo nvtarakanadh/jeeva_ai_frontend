@@ -108,7 +108,7 @@ class AuthService {
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout (Render free tier can be slow)
     
     try {
       console.log('🔐 Attempting login to:', `${API_BASE_URL}/api/auth/login/`);
@@ -290,7 +290,7 @@ class AuthService {
 
   async requestPasswordReset(email: string): Promise<void> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout (Render free tier can be slow)
     
     try {
       console.log('🔐 Requesting password reset from:', `${API_BASE_URL}/api/auth/password/reset/request/`);
