@@ -536,16 +536,15 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
   const fetchBlockedTimeSlots = React.useCallback(async (doctorId: string, date: string) => {
     if (!doctorId || !date) return;
     
+    // Supabase removed - using Django API only
+    // TODO: Implement Django API call to fetch blocked time slots
+    console.warn('⚠️ fetchBlockedTimeSlots disabled - Supabase removed');
+    return [];
+    
+    /* OLD SUPABASE CODE - REMOVED
     try {
       console.log('🔍 Fetching blocked time slots for doctor:', doctorId, 'date:', date);
       console.log('🔍 Date type:', typeof date, 'Date value:', date);
-      
-      // Supabase removed - using Django API only
-      // TODO: Implement Django API call to fetch blocked time slots
-      console.warn('⚠️ fetchBlockedTimeSlots disabled - Supabase removed');
-      return [];
-      
-      /* OLD SUPABASE CODE - REMOVED
       // Fetch only blocked time events (where patient_id is null)
       // These are events created by the doctor to block time slots
       const { data: blockedConsultations, error } = await supabase
