@@ -32,6 +32,49 @@
 
   <body>
     <div id="root"></div>
+    
+    <!-- CRITICAL: Block all Supabase requests BEFORE any JavaScript loads -->
+    <script>
+      // Block Supabase requests immediately - runs before any other code
+      (function() {
+        'use strict';
+        
+        // Block fetch API
+        const originalFetch = window.fetch;
+        window.fetch = function(input, init) {
+          var url = '';
+          if (typeof input === 'string') {
+            url = input;
+          } else if (input instanceof URL) {
+            url = input.href;
+          } else if (input && input.url) {
+            url = input.url;
+          }
+          
+          if (url.includes('supabase.co') || url.includes('wgcmusjsuziqjkzuaqkd')) {
+            console.warn('🚫 BLOCKED Supabase request:', url);
+            console.warn('⚠️ Supabase is disabled. Use Django API instead.');
+            return Promise.reject(new Error('Supabase is disabled. Use Django API instead.'));
+          }
+          
+          return originalFetch.apply(this, arguments);
+        };
+        
+        // Block XMLHttpRequest
+        const originalXHROpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function(method, url) {
+          var urlString = typeof url === 'string' ? url : (url ? url.href : '');
+          if (urlString.includes('supabase.co') || urlString.includes('wgcmusjsuziqjkzuaqkd')) {
+            console.warn('🚫 BLOCKED Supabase XHR request:', urlString);
+            throw new Error('Supabase is disabled. Use Django API instead.');
+          }
+          return originalXHROpen.apply(this, arguments);
+        };
+        
+        console.log('🛡️ Supabase request blocker activated (injected in HTML)');
+      })();
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
