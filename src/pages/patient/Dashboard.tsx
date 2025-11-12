@@ -454,8 +454,8 @@ const PatientDashboard = () => {
           appointments: formattedAppointments.length,
           activeConsents: (consentRequests || []).filter((consent: any) => consent.status === 'approved').length
         });
-
-    } catch (error) {
+        */
+      } catch (error) {
         console.error('❌ Error loading dashboard data:', error);
         setError('Failed to load dashboard data. Please refresh the page.');
         setLoading(false);
