@@ -683,6 +683,10 @@ const PatientDashboard = () => {
     },
   ];
 
+  // Prepare welcome text with user name
+  const welcomeText = t('dashboard.patientWelcomeBack').replace('{{name}}', user?.name || 'User');
+  const overviewText = t('dashboard.yourOverview');
+
   if (loading) {
     return <PageSkeleton />;
   }
@@ -712,10 +716,6 @@ const PatientDashboard = () => {
       </div>
     );
   }
-
-  // Prepare welcome text with user name
-  const welcomeText = t('dashboard.patientWelcomeBack').replace('{{name}}', user?.name || 'User');
-  const overviewText = t('dashboard.yourOverview');
 
   return (
     <div className="space-y-6">
