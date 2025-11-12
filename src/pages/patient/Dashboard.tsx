@@ -719,7 +719,7 @@ const PatientDashboard = () => {
       <QuickActions />
       
       <div>
-        <h1 className="text-3xl font-bold">{t('dashboard.patientWelcomeBack').replace('{{name}}', user?.name || 'User')}</h1>
+        <h1 className="text-3xl font-bold">{t('dashboard.patientWelcomeBack', { name: user?.name || 'User' })}</h1>
         <p className="text-muted-foreground">{t('dashboard.yourOverview')}</p>
       </div>
 

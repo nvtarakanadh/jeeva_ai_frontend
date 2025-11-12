@@ -50,10 +50,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     i18n.changeLanguage(language);
   }, []);
 
-  const t = (key: string, options?: Record<string, string>): string => {
+  const t = (key: string, options?: Record<string, any>): string => {
     // Keys are already in the format 'common.xxx' or 'navigation.xxx', etc.
     // i18next will handle the namespace automatically
-    return i18n.t(key, { ns: 'common', ...options }) || key;
+    return i18n.t(key, { ns: 'common', ...(options || {}) }) || key;
   };
 
   return (
