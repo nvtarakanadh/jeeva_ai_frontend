@@ -15,7 +15,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import type { Notification } from '../../types/notification';
-import { supabase } from '@/integrations/supabase/client';
+// import { supabase } from '@/integrations/supabase/client'; // REMOVED - Using Django API now
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
@@ -54,30 +54,31 @@ export const NotificationDropdown: React.FC = () => {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [userRole, setUserRole] = React.useState<string>('patient');
-
-  // Fetch user role on component mount
-  React.useEffect(() => {
-    const fetchUserRole = async () => {
-      if (user?.id) {
-        try {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('user_id', user.id)
-            .single();
-          
-          if (profile && !error) {
-            setUserRole(profile.role);
-          }
-        } catch (error) {
-          console.error('Error fetching user role:', error);
-        }
-      }
-    };
-
-    fetchUserRole();
-  }, [user?.id]);
+  // Get user role from user object (no Supabase call needed)
+  const userRole = user?.role || 'patient';
+  
+  // OLD SUPABASE CODE - REMOVED
+  // const [userRole, setUserRole] = React.useState<string>('patient');
+  // React.useEffect(() => {
+  //   const fetchUserRole = async () => {
+  //     if (user?.id) {
+  //       try {
+  //         const { data: profile, error } = await supabase
+  //           .from('profiles')
+  //           .select('role')
+  //           .eq('user_id', user.id)
+  //           .single();
+  //         
+  //         if (profile && !error) {
+  //           setUserRole(profile.role);
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching user role:', error);
+  //       }
+  //     }
+  //   };
+  //   fetchUserRole();
+  // }, [user?.id]);
 
   const handleNotificationClick = (notification: Notification) => {
     // Mark as read first

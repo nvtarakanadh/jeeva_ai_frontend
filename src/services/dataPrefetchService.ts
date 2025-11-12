@@ -32,8 +32,12 @@ class DataPrefetchService {
     }
   }
 
-  // Prefetch critical data for patient dashboard
+  // Prefetch critical data for patient dashboard - DISABLED (Supabase removed)
   async prefetchPatientDashboardData(userId: string) {
+    console.log('⚠️ prefetchPatientDashboardData disabled (Supabase removed)');
+    return;
+    
+    /* OLD SUPABASE CODE - REMOVED
     if (this.prefetchQueue.has(userId) || this.isPrefetching) {
       return;
     }
@@ -64,6 +68,7 @@ class DataPrefetchService {
       this.prefetchQueue.delete(userId);
       this.isPrefetching = false;
     }
+    */
   }
 
   // Individual prefetch methods
