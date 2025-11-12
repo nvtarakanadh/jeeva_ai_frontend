@@ -62,35 +62,31 @@ const DoctorDashboard = () => {
   const [calendarKey, setCalendarKey] = useState(0);
   const [isDataLoading, setIsDataLoading] = useState(false); // For preventing shaking during data load
 
-  // Get doctor profile ID once
+  // Get doctor profile ID once - using Django API
   useEffect(() => {
     const getDoctorProfileId = async () => {
       console.log('🔍 Getting doctor profile ID, user:', user);
       if (!user) {
         console.log('❌ No user found');
+        setLoading(false);
         return;
       }
       
       try {
-        console.log('📡 Querying Supabase for doctor profile...');
-        const { data: doctorProfile, error } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('user_id', user.id)
-          .single() as { data: { id: string } | null; error: any };
-
-        if (error || !doctorProfile) {
-          console.error('❌ Error finding doctor profile:', error);
-          console.log('⚠️ Will show fallback data instead');
-          setLoading(false);
-          return;
+        // Use user profile ID from the user object (Django API)
+        // The profile ID should be available in user.profile.id
+        if (user.profile?.id) {
+          console.log('✅ Found doctor profile ID from user object:', user.profile.id);
+          setDoctorProfileId(user.profile.id);
+        } else if (user.id) {
+          // Fallback: use user ID as profile ID (they should be the same in Django)
+          console.log('⚠️ Profile ID not found, using user ID:', user.id);
+          setDoctorProfileId(user.id);
         }
-
-        console.log('✅ Found doctor profile ID:', doctorProfile.id);
-        setDoctorProfileId(doctorProfile.id);
+        setLoading(false);
       } catch (error) {
         console.error('❌ Error getting doctor profile:', error);
-        console.log('⚠️ Will show fallback data instead');
+        console.log('⚠️ Will show dashboard with empty data');
         setLoading(false);
       }
     };
@@ -155,34 +151,14 @@ const DoctorDashboard = () => {
   }, [doctorProfileId]);
 
 
-  // Load patients for dropdown with memoization
+  // Load patients for dropdown with memoization - DISABLED (Supabase removed)
   const loadPatients = useCallback(async () => {
     if (!doctorProfileId) return;
     
     try {
-      // Fetch real patients from database
-      const { data: patientsData, error } = await supabase
-        .from('profiles')
-        .select('id, user_id, full_name, email, phone')
-        .eq('role', 'patient')
-        .order('full_name', { ascending: true }) as { data: Array<{ id: string; user_id: string; full_name: string; email: string; phone: string }> | null; error: any };
-
-      if (error) {
-        console.error('Error fetching patients:', error);
-        throw error;
-      }
-
-      // Transform the data to match the expected format
-      const realPatients = patientsData?.map(patient => ({
-        id: patient.id, // Use profile id as the ID for consultations table
-        name: patient.full_name,
-        email: patient.email,
-        phone: patient.phone
-      })) || [];
-
-      console.log('Loaded patients:', realPatients);
-      console.log('Number of patients found:', realPatients.length);
-      setPatients(realPatients);
+      // TODO: Implement Django API call to fetch patients
+      console.warn('⚠️ loadPatients disabled - Supabase removed, need Django API');
+      setPatients([]);
     } catch (error) {
       console.error('Error loading patients:', error);
       // Fallback to empty array if there's an error
@@ -916,12 +892,11 @@ const DoctorDashboard = () => {
     );
   }
 
-  // Show welcome dashboard if no data is available
-  const hasData = stats.totalPatients > 0 || recentActivity.length > 0 || upcomingTasks.length > 0 || events.length > 0;
-  
-  if (!hasData && !loading) {
-    return <WelcomeDashboard userType="doctor" userName={user?.name} />;
-  }
+  // Always show the actual dashboard, even with empty data
+  // The welcome dashboard is too basic - show the full dashboard with empty states
+  // if (!hasData && !loading) {
+  //   return <WelcomeDashboard userType="doctor" userName={user?.name} />;
+  // }
 
   return (
     <div className="space-y-6">
