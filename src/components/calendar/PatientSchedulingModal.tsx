@@ -841,6 +841,7 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
             console.error('❌ Error testing real blocked slots:', err);
             return null;
           }
+          */
         },
         testCurrentState: () => {
           console.log('🧪 Current state test:');
@@ -931,6 +932,7 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
             console.error('❌ Error checking all blocked time events:', err);
             return null;
           }
+          */
         }
     };
     console.log('🔧 Debug functions available: window.debugPatientScheduling');
