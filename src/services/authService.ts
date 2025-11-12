@@ -5,6 +5,12 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
+// Debug: Log API URL in production
+if (import.meta.env.PROD) {
+  console.log('🔧 API Base URL:', API_BASE_URL);
+  console.log('🔧 Environment:', import.meta.env.MODE);
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -101,41 +107,58 @@ class AuthService {
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/auth/login/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    try {
+      console.log('🔐 Attempting login to:', `${API_BASE_URL}/api/auth/login/`);
+      const response = await fetch(`${API_BASE_URL}/api/auth/login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: 'Login failed' }));
-      
-      // Extract error messages from Django REST Framework validation errors
-      let errorMessage = errorData.detail || errorData.message || 'Login failed';
-      
-      // Handle nested validation errors
-      if (typeof errorData === 'object' && !errorData.detail) {
-        const errorMessages: string[] = [];
-        for (const [field, errors] of Object.entries(errorData)) {
-          if (Array.isArray(errors)) {
-            errorMessages.push(`${field}: ${errors.join(', ')}`);
-          } else if (typeof errors === 'string') {
-            errorMessages.push(`${field}: ${errors}`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Login failed' }));
+        
+        // Extract error messages from Django REST Framework validation errors
+        let errorMessage = errorData.detail || errorData.message || 'Login failed';
+        
+        // Handle nested validation errors
+        if (typeof errorData === 'object' && !errorData.detail) {
+          const errorMessages: string[] = [];
+          for (const [field, errors] of Object.entries(errorData)) {
+            if (Array.isArray(errors)) {
+              errorMessages.push(`${field}: ${errors.join(', ')}`);
+            } else if (typeof errors === 'string') {
+              errorMessages.push(`${field}: ${errors}`);
+            }
+          }
+          if (errorMessages.length > 0) {
+            errorMessage = errorMessages.join('. ');
           }
         }
-        if (errorMessages.length > 0) {
-          errorMessage = errorMessages.join('. ');
-        }
+        
+        throw new Error(errorMessage);
       }
-      
-      throw new Error(errorMessage);
-    }
 
-    const data: AuthResponse = await response.json();
-    this.setTokens(data.tokens.access, data.tokens.refresh);
-    return data;
+      const data: AuthResponse = await response.json();
+      this.setTokens(data.tokens.access, data.tokens.refresh);
+      return data;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout. Please check your internet connection and try again.');
+      }
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error(`Cannot connect to server. Please check if the backend is running at ${API_BASE_URL}`);
+      }
+      throw error;
+    }
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
@@ -266,42 +289,59 @@ class AuthService {
   }
 
   async requestPasswordReset(email: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/api/auth/password/reset/request/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email }),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    try {
+      console.log('🔐 Requesting password reset from:', `${API_BASE_URL}/api/auth/password/reset/request/`);
+      const response = await fetch(`${API_BASE_URL}/api/auth/password/reset/request/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      let errorData;
-      try {
-        errorData = await response.json();
-      } catch {
-        errorData = { detail: `Password reset request failed with status ${response.status}` };
-      }
-      
-      // Extract error messages from Django REST Framework validation errors
-      let errorMessage = errorData.detail || errorData.message || 'Password reset request failed';
-      
-      // Handle nested validation errors
-      if (typeof errorData === 'object' && !errorData.detail && !errorData.message) {
-        const errorMessages: string[] = [];
-        for (const [field, errors] of Object.entries(errorData)) {
-          if (Array.isArray(errors)) {
-            errorMessages.push(`${field}: ${errors.join(', ')}`);
-          } else if (typeof errors === 'string') {
-            errorMessages.push(`${field}: ${errors}`);
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { detail: `Password reset request failed with status ${response.status}` };
+        }
+        
+        // Extract error messages from Django REST Framework validation errors
+        let errorMessage = errorData.detail || errorData.message || 'Password reset request failed';
+        
+        // Handle nested validation errors
+        if (typeof errorData === 'object' && !errorData.detail && !errorData.message) {
+          const errorMessages: string[] = [];
+          for (const [field, errors] of Object.entries(errorData)) {
+            if (Array.isArray(errors)) {
+              errorMessages.push(`${field}: ${errors.join(', ')}`);
+            } else if (typeof errors === 'string') {
+              errorMessages.push(`${field}: ${errors}`);
+            }
+          }
+          if (errorMessages.length > 0) {
+            errorMessage = errorMessages.join('. ');
           }
         }
-        if (errorMessages.length > 0) {
-          errorMessage = errorMessages.join('. ');
-        }
+        
+        console.error('Password reset error details:', errorData);
+        throw new Error(errorMessage);
       }
-      
-      console.error('Password reset error details:', errorData);
-      throw new Error(errorMessage);
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout. Please check your internet connection and try again.');
+      }
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error(`Cannot connect to server. Please check if the backend is running at ${API_BASE_URL}`);
+      }
+      throw error;
     }
   }
 

@@ -33,17 +33,20 @@ Vercel will auto-detect Vite. Just verify:
 ### 5. Deploy
 Click "Deploy" button
 
-### 6. Update Backend CORS (After Deployment)
+### 6. Update Backend CORS (After Deployment) ⚠️ IMPORTANT
 
-Once you get your Vercel URL (e.g., `https://your-app.vercel.app`):
+**Your Frontend**: https://jeevaai.vercel.app/
 
-1. Go to Render dashboard → Your backend service
+1. Go to Render dashboard → Your backend service (`jeeva-ai-backend-sms7`)
 2. Go to "Environment" tab
 3. Update `CORS_ALLOWED_ORIGINS`:
    ```
-   https://your-app.vercel.app,https://your-app-git-main.vercel.app,http://localhost:8080,http://localhost:3000
+   https://jeevaai.vercel.app,https://jeevaai-git-main.vercel.app,http://localhost:8080,http://localhost:3000
    ```
-4. Save and redeploy backend
+4. **Save and redeploy backend** (Render will auto-redeploy)
+5. Wait 2-3 minutes for deployment to complete
+
+**This is critical!** Without this, your frontend won't be able to make API calls to the backend.
 
 ## That's It! 🎉
 
