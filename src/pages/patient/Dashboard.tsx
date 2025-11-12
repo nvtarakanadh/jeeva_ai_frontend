@@ -284,8 +284,7 @@ const PatientDashboard = () => {
         setDoctors([]);
         setTestCenters([]);
         setLoading(false);
-        return;
-
+        
         /* OLD SUPABASE CODE - REMOVED
         // Get patient profile
           const { data: profileData, error: profileError } = await supabase
