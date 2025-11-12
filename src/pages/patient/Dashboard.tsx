@@ -713,20 +713,18 @@ const PatientDashboard = () => {
     );
   }
 
+  // Prepare welcome text with user name
+  const welcomeText = t('dashboard.patientWelcomeBack').replace('{{name}}', user?.name || 'User');
+  const overviewText = t('dashboard.yourOverview');
+
   return (
     <div className="space-y-6">
       {/* Quick Actions */}
       <QuickActions />
       
       <div>
-        <h1 className="text-3xl font-bold">
-          {(() => {
-            const welcomeText = t('dashboard.patientWelcomeBack');
-            const userName = user?.name || 'User';
-            return welcomeText.replace('{{name}}', userName);
-          })()}
-        </h1>
-        <p className="text-muted-foreground">{t('dashboard.yourOverview')}</p>
+        <h1 className="text-3xl font-bold">{welcomeText}</h1>
+        <p className="text-muted-foreground">{overviewText}</p>
       </div>
 
       {/* Top Row: Health Records + Active Consents */}
