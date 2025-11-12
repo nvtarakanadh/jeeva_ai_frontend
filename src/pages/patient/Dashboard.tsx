@@ -4,7 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Shield, Activity, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+// import { supabase } from '@/integrations/supabase/client'; // REMOVED - Using Django API now
 import { InlineLoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageSkeleton } from '@/components/ui/skeleton-loading';
 import QuickActions from '@/components/layout/QuickActions';
@@ -261,6 +261,25 @@ const PatientDashboard = () => {
     
     const loadData = async () => {
       try {
+        // TODO: Replace Supabase calls with Django API endpoints
+        // For now, show empty dashboard until Django endpoints are created
+        console.log('⚠️ Dashboard: Supabase removed, using empty data for now');
+        
+        // Set empty data - will be replaced with Django API calls
+        setHealthRecords({
+          totalRecords: 0,
+          recentRecords: []
+        });
+        setAppointments([]);
+        setAllAppointments([]);
+        setActiveConsents(0);
+        setRecentActivity([]);
+        setDoctors([]);
+        setTestCenters([]);
+        setLoading(false);
+        return;
+
+        /* OLD SUPABASE CODE - REMOVED
         // Get patient profile
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
@@ -439,10 +458,14 @@ const PatientDashboard = () => {
     loadData();
   }, [user?.id]);
 
-  // Real-time subscription for appointments
+  // Real-time subscription for appointments - DISABLED (Supabase removed)
   useEffect(() => {
     if (!user?.id) return;
 
+    console.log('⚠️ Real-time subscriptions disabled (Supabase removed)');
+    return;
+
+    /* OLD SUPABASE CODE - REMOVED
     console.log('🔄 Setting up real-time subscription for appointments');
 
     const subscription = supabase
