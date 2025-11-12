@@ -1,5 +1,5 @@
 // Supabase removed - using Django API only
-import { Tables } from '@/integrations/supabase/types';
+// import { Tables } from '@/integrations/supabase/types';
 
 // Define the calendar event interface that matches what the calendar component expects
 export interface CalendarEvent {
