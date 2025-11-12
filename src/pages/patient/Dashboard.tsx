@@ -4,7 +4,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Shield, Activity, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-// import { supabase } from '@/integrations/supabase/client'; // REMOVED - Using Django API now
 import { InlineLoadingSpinner } from '@/components/ui/loading-spinner';
 import { PageSkeleton } from '@/components/ui/skeleton-loading';
 import QuickActions from '@/components/layout/QuickActions';
