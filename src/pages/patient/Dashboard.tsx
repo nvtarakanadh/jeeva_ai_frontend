@@ -116,6 +116,7 @@ const PatientDashboard = () => {
     } catch (error) {
       console.error('❌ Error reloading all appointments:', error);
     }
+    */
   };
 
   // Function to reload appointments (including all appointments for blocking) - DISABLED (Supabase removed)
@@ -256,6 +257,7 @@ const PatientDashboard = () => {
     } catch (error) {
       console.error('❌ Error reloading appointments:', error);
     }
+    */
   };
 
   useEffect(() => {
@@ -524,6 +526,7 @@ const PatientDashboard = () => {
       console.log('🔄 Cleaning up real-time subscription');
       subscription.unsubscribe();
     };
+    */
   }, [user?.id]);
 
   // Real-time subscription for ALL appointments (to show blocked slots) - DISABLED (Supabase removed)
