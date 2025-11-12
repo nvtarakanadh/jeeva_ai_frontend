@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { DashboardStats, RecentActivity, UpcomingTask } from './dashboardService';
 
 // Simple dashboard service that uses basic Supabase queries

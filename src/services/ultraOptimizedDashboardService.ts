@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { cacheService, createCacheKey, CACHE_TTL } from './cacheService';
 import { DashboardStats, RecentActivity, UpcomingTask } from './dashboardService';
 

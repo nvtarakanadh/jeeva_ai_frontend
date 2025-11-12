@@ -2,7 +2,7 @@
 // This file contains the old complex frontend AI analysis logic
 // New implementations should use the Django backend via aiAnalysisService.ts
 
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 export interface AIAnalysisResult {
   summary: string;
