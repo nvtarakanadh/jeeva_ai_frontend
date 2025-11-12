@@ -528,10 +528,14 @@ const PatientDashboard = () => {
     };
   }, [user?.id]);
 
-  // Real-time subscription for ALL appointments (to show blocked slots)
+  // Real-time subscription for ALL appointments (to show blocked slots) - DISABLED (Supabase removed)
   useEffect(() => {
     if (!user?.id) return;
 
+    console.log('⚠️ Real-time subscriptions for all appointments disabled (Supabase removed)');
+    return;
+
+    /* OLD SUPABASE CODE - REMOVED
     console.log('🔄 Setting up real-time subscription for all appointments');
 
     const subscription = supabase
@@ -580,6 +584,7 @@ const PatientDashboard = () => {
       console.log('🔄 Cleaning up all appointments subscription');
       subscription.unsubscribe();
     };
+    */
   }, [user?.id]);
 
   // Debug: Add test functions to window for manual testing

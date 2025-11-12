@@ -82,6 +82,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       return;
     }
 
+    console.warn('⚠️ Real-time notification subscriptions disabled (Supabase removed)');
+    return;
+
+    /* OLD SUPABASE CODE - REMOVED
     console.log('🔍 Setting up real-time subscription for user:', user.id);
 
     // Use the enhanced realtime service
@@ -132,6 +136,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     } else {
       console.log('✅ Real-time subscription established');
     }
+    */
   };
 
   const markAsRead = async (id: string) => {

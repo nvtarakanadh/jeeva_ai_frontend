@@ -439,8 +439,12 @@ export class RealtimeNotificationService {
     return RealtimeNotificationService.instance;
   }
 
-  // Subscribe to notifications for a specific user
+  // Subscribe to notifications for a specific user - DISABLED (Supabase removed)
   subscribeToUserNotifications(userId: string, callback: (notification: any) => void) {
+    console.warn('⚠️ Real-time notification subscriptions disabled (Supabase removed)');
+    return null;
+    
+    /* OLD SUPABASE CODE - REMOVED
     const channelName = `user_notifications_${userId}`;
     
     if (this.subscriptions.has(channelName)) {
@@ -484,6 +488,7 @@ export class RealtimeNotificationService {
       console.warn('Failed to subscribe to notifications (table may not exist):', error);
       return null;
     }
+    */
   }
 
   // Unsubscribe from user notifications
