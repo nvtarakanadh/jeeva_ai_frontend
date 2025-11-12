@@ -3,17 +3,31 @@ import App from "./App.tsx";
 import "./index.css";
 
 // BLOCK ALL SUPABASE REQUESTS - Intercept fetch calls to prevent Supabase API calls
+// This MUST run before any other code to catch all Supabase requests
 if (typeof window !== "undefined") {
+  // Store original fetch immediately
   const originalFetch = window.fetch;
+  
+  // Override fetch to block Supabase requests
   window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    let url: string;
+    
+    if (typeof input === 'string') {
+      url = input;
+    } else if (input instanceof URL) {
+      url = input.href;
+    } else if (input instanceof Request) {
+      url = input.url;
+    } else {
+      url = String(input);
+    }
     
     // Block all requests to Supabase domains
     if (url.includes('supabase.co') || url.includes('wgcmusjsuziqjkzuaqkd')) {
-      console.warn('🚫 Blocked Supabase request:', url);
+      console.warn('🚫 BLOCKED Supabase request:', url);
       console.warn('⚠️ Supabase is disabled. Use Django API instead.');
       
-      // Return a rejected promise that mimics a network error
+      // Return a rejected promise immediately - don't make the network request
       return Promise.reject(new Error('Supabase is disabled. Use Django API instead.'));
     }
     
@@ -21,7 +35,18 @@ if (typeof window !== "undefined") {
     return originalFetch.call(this, input, init);
   };
   
-  console.log('🛡️ Supabase request blocker activated');
+  // Also intercept XMLHttpRequest as a backup
+  const originalXHROpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function(method: string, url: string | URL, ...args: any[]) {
+    const urlString = typeof url === 'string' ? url : url.href;
+    if (urlString.includes('supabase.co') || urlString.includes('wgcmusjsuziqjkzuaqkd')) {
+      console.warn('🚫 BLOCKED Supabase XHR request:', urlString);
+      throw new Error('Supabase is disabled. Use Django API instead.');
+    }
+    return originalXHROpen.call(this, method, url, ...args);
+  };
+  
+  console.log('🛡️ Supabase request blocker activated (fetch + XHR)');
 }
 
 // Production-safe cache clearing for authentication issues
