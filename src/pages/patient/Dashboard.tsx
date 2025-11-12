@@ -684,8 +684,8 @@ const PatientDashboard = () => {
   ];
 
   // Prepare welcome text with user name
-  const welcomeText = t('dashboard.patientWelcomeBack').replace('{{name}}', user?.name || 'User');
-  const overviewText = t('dashboard.yourOverview');
+  const welcomeText = `Welcome back, ${user?.name || 'User'}`;
+  const overviewText = "Here's your health overview";
 
   if (loading) {
     return <PageSkeleton />;
