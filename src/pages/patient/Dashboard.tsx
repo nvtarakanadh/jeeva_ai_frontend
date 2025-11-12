@@ -260,11 +260,11 @@ const PatientDashboard = () => {
 
   useEffect(() => {
     if (!user?.id) {
-          setLoading(false);
-        return;
-      }
+      setLoading(false);
+      return;
+    }
 
-        console.log('🔄 Loading dashboard data for user:', user.id);
+    console.log('🔄 Loading dashboard data for user:', user.id);
     
     const loadData = async () => {
       try {
