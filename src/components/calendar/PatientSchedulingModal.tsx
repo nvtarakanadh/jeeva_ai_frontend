@@ -51,7 +51,7 @@ interface ProfileData {
 import { useAuth } from '@/contexts/AuthContext';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sparkles } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 export interface PatientScheduleData {
   title: string;
@@ -540,9 +540,12 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
       console.log('🔍 Fetching blocked time slots for doctor:', doctorId, 'date:', date);
       console.log('🔍 Date type:', typeof date, 'Date value:', date);
       
-      // Import supabase client
-      const { supabase } = await import('@/integrations/supabase/client');
+      // Supabase removed - using Django API only
+      // TODO: Implement Django API call to fetch blocked time slots
+      console.warn('⚠️ fetchBlockedTimeSlots disabled - Supabase removed');
+      return [];
       
+      /* OLD SUPABASE CODE - REMOVED
       // Fetch only blocked time events (where patient_id is null)
       // These are events created by the doctor to block time slots
       const { data: blockedConsultations, error } = await supabase
@@ -625,6 +628,7 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
     } catch (error) {
       console.error('Error in fetchBlockedTimeSlots:', error);
     }
+    */
   }, []);
 
   // Fetch blocked time slots when doctor or date changes
@@ -708,7 +712,11 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
           console.log('🧪 Testing database query directly...');
           if (formData.doctor_id && formData.date) {
             try {
-              const { supabase } = await import('@/integrations/supabase/client');
+              // Supabase removed - using Django API only
+              console.warn('⚠️ testDatabaseQuery disabled - Supabase removed');
+              return [];
+              
+              /* OLD SUPABASE CODE - REMOVED
               const { data, error } = await supabase
                 .from('consultations')
                 .select('*')
@@ -764,10 +772,11 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
           }
           
           try {
-            console.log('🧪 Importing supabase client...');
-            const { supabase } = await import('@/integrations/supabase/client');
-            console.log('🧪 Supabase client imported successfully');
+            // Supabase removed - using Django API only
+            console.warn('⚠️ testRealBlockedSlotsFromDatabase disabled - Supabase removed');
+            return null;
             
+            /* OLD SUPABASE CODE - REMOVED
             console.log('🧪 Fetching consultations for doctor:', formData.doctor_id, 'date:', formData.date);
             
             // Fetch ALL consultations for this doctor on this date
@@ -892,8 +901,11 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
         checkAllBlockedTimeEvents: async () => {
           console.log('🧪 Checking ALL blocked time events in database...');
           try {
-            const { supabase } = await import('@/integrations/supabase/client');
+            // Supabase removed - using Django API only
+            console.warn('⚠️ checkAllBlockedTimeEvents disabled - Supabase removed');
+            return null;
             
+            /* OLD SUPABASE CODE - REMOVED
             // Fetch ALL blocked time events (patient_id is null) for ALL doctors and dates
             const { data: allBlockedEvents, error } = await supabase
               .from('consultations')

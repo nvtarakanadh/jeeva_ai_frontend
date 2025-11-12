@@ -7,7 +7,7 @@ import { Brain, Activity, AlertTriangle, Lightbulb, TrendingUp, Heart, X, Refres
 import { InlineLoadingSpinner } from '@/components/ui/loading-spinner';
 import { AIAnalysis } from '@/types';
 import { getAIInsights } from '@/services/aiInsightsService';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 interface AIAnalysisModalProps {
   isOpen: boolean;
