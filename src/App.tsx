@@ -44,6 +44,7 @@ import FinancePartners from "./pages/patient/FinancePartners";
 import TeleHealth from "./pages/patient/TeleHealth";
 import RemoteMonitoring from "./pages/patient/RemoteMonitoring";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import MainLayout from "./layouts/MainLayout";
 
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ const App = () => {
                         <Route path="/" element={<Index />} />
                         <Route path="/auth" element={<Auth />} />
                         <Route path="/login" element={<Auth />} />
+                        <Route path="/auth/reset-password" element={<ResetPassword />} />
                 
                 {/* Patient Routes */}
                 <Route path="/dashboard" element={
