@@ -8,18 +8,49 @@
 const createMockSupabaseClient = () => {
   console.warn('⚠️ Supabase is disabled. All Supabase calls will fail. Use Django API instead.');
   
-  const mockFrom = () => ({
-    select: () => ({
-      eq: () => ({
-        single: () => Promise.resolve({ data: null, error: { message: 'Supabase is disabled. Use Django API instead.' } }),
-        order: () => Promise.resolve({ data: [], error: null }),
+  // Create a chainable mock that handles all Supabase query patterns
+  const createChainableMock = () => {
+    const chain: any = {
+      select: () => chain,
+      eq: () => chain,
+      neq: () => chain,
+      gt: () => chain,
+      gte: () => chain,
+      lt: () => chain,
+      lte: () => chain,
+      like: () => chain,
+      ilike: () => chain,
+      is: () => chain,
+      in: () => chain,
+      contains: () => chain,
+      order: () => chain,
+      limit: () => chain,
+      range: () => chain,
+      single: () => Promise.resolve({ 
+        data: null, 
+        error: { 
+          code: 'PGRST116',
+          message: 'Supabase is disabled. Use Django API instead.',
+          details: 'The result contains 0 rows',
+          hint: null
+        } 
       }),
-      order: () => Promise.resolve({ data: [], error: null }),
-    }),
-    insert: () => Promise.resolve({ data: null, error: { message: 'Supabase is disabled. Use Django API instead.' } }),
-    update: () => Promise.resolve({ data: null, error: { message: 'Supabase is disabled. Use Django API instead.' } }),
-    delete: () => Promise.resolve({ data: null, error: { message: 'Supabase is disabled. Use Django API instead.' } }),
-  });
+      maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      then: (onResolve?: any, onReject?: any) => {
+        const result = Promise.resolve({ data: [], error: null });
+        return result.then(onResolve, onReject);
+      },
+    };
+    
+    // Make it thenable (Promise-like)
+    chain.then = (onResolve?: any, onReject?: any) => {
+      return Promise.resolve({ data: [], error: null }).then(onResolve, onReject);
+    };
+    
+    return chain;
+  };
+
+  const mockFrom = () => createChainableMock();
 
   return {
     from: mockFrom,
@@ -31,6 +62,7 @@ const createMockSupabaseClient = () => {
     auth: {
       signOut: () => Promise.resolve({ error: null }),
       getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+      signInWithPassword: () => Promise.resolve({ data: null, error: { message: 'Supabase is disabled' } }),
     },
   } as any;
 };

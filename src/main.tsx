@@ -2,6 +2,28 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
+// BLOCK ALL SUPABASE REQUESTS - Intercept fetch calls to prevent Supabase API calls
+if (typeof window !== "undefined") {
+  const originalFetch = window.fetch;
+  window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    
+    // Block all requests to Supabase domains
+    if (url.includes('supabase.co') || url.includes('wgcmusjsuziqjkzuaqkd')) {
+      console.warn('🚫 Blocked Supabase request:', url);
+      console.warn('⚠️ Supabase is disabled. Use Django API instead.');
+      
+      // Return a rejected promise that mimics a network error
+      return Promise.reject(new Error('Supabase is disabled. Use Django API instead.'));
+    }
+    
+    // Allow all other requests
+    return originalFetch.call(this, input, init);
+  };
+  
+  console.log('🛡️ Supabase request blocker activated');
+}
+
 // Production-safe cache clearing for authentication issues
 if (typeof window !== "undefined") {
   console.log('🧹 Starting production cache management...');
