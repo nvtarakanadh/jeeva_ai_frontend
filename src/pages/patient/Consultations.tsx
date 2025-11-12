@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getPatientConsultations, Consultation } from '@/services/consultationService';
 import { toast } from '@/hooks/use-toast';
 import ConsultationBooking from '@/components/consultation/ConsultationBooking';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 const PatientConsultations = () => {
   const { user } = useAuth();

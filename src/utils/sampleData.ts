@@ -1,7 +1,7 @@
 // Sample data for testing the calendar functionality
 // You can run this in the browser console to add test patients and consultations
 
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 export const addSamplePatients = async () => {
   const samplePatients = [

@@ -12,7 +12,7 @@ import { PageLoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAuth } from '@/contexts/AuthContext';
 import { getConsultationNotesForPatient, ConsultationNote } from '@/services/prescriptionService';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 const PatientConsultationNotes = () => {
   const { user } = useAuth();

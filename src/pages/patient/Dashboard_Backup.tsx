@@ -12,7 +12,7 @@ import { InlineLoadingSpinner, CardLoadingSpinner } from '@/components/ui/loadin
 import { PageSkeleton } from '@/components/ui/skeleton-loading';
 import { cacheService, createCacheKey, CACHE_TTL } from '@/services/cacheService';
 import { getPatientConsentRequests } from '@/services/consentService';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { getDoctors } from '@/services/doctorsService';
 import QuickActions from '@/components/layout/QuickActions';
 import PatientCalendarComponent, { PatientAppointment } from '@/components/calendar/PatientCalendarComponent';

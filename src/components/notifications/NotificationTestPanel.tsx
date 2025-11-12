@@ -15,7 +15,7 @@ import {
   createConsentRequestNotification
 } from '@/services/notificationService';
 import { testNotificationsTable, testCreateNotification, testRLSPolicies } from '@/utils/testNotifications';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 export const NotificationTestPanel: React.FC = () => {
   const { user } = useAuth();

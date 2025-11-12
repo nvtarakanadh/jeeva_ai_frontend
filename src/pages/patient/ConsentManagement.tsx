@@ -10,7 +10,7 @@ import { Shield, Clock, CheckCircle, XCircle, AlertCircle, User, Calendar, Refre
 import { toast } from '@/hooks/use-toast';
 import { getPatientConsentRequests, respondToConsentRequest, revokeConsentRequest } from '@/services/consentService';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 const ConsentManagement = () => {
   const { user } = useAuth();

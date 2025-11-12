@@ -12,7 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { ButtonLoadingSpinner } from '@/components/ui/loading-spinner';
 import { createPrescription, uploadPrescriptionFile } from '@/services/prescriptionService';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 interface CreatePrescriptionProps {
   patientId: string;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { useAuth } from '@/contexts/AuthContext';
 
 const AuthDebug: React.FC = () => {
