@@ -14,7 +14,7 @@ import { format } from 'date-fns';
 import { CardLoadingSpinner } from '@/components/ui/loading-spinner';
 import { User, Search, FileText, Brain, Clock, Eye, PlusCircle, Pill, Stethoscope, Calendar, X, UserPlus, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { RecordType } from '@/types';

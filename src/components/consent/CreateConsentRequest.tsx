@@ -11,7 +11,7 @@ import { getPatientsForDoctor } from '@/services/consentService';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Plus, Send, Shield, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { format } from 'date-fns';
 
 interface Patient {

@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createPrescription, Prescription } from '@/services/prescriptionService';
 import { getOptimizedPrescriptionsForDoctor, getOptimizedPatientsForDoctor, clearPrescriptionCache, PatientForPrescription } from '@/services/optimizedPrescriptionService';
 import { toast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { format } from 'date-fns';
 import { PageSkeleton } from '@/components/ui/skeleton-loading';
 import { useDropzone } from 'react-dropzone';

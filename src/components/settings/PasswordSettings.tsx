@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Lock, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export const PasswordSettings = () => {

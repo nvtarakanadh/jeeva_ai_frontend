@@ -12,7 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { getDoctorConsentRequests, extendConsentRequest } from '@/services/consentService';
 import CreateConsentRequest from '@/components/consent/CreateConsentRequest';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { useLanguage } from '@/contexts/LanguageContext';
 
 

@@ -11,7 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { FileText, Plus, Save, Eye, EyeOff, Download, Shield } from 'lucide-react';
 import { format } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ConsentFormData {

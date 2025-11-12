@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Clock, CheckCircle, Calendar, Plus, Activity, Stethoscope, Briefcase } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addMinutes } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { getSimpleDashboardStats, getSimpleRecentActivity, getSimpleUpcomingTasks } from '@/services/simpleDashboardService';
 import { type DashboardStats, type RecentActivity, type UpcomingTask } from '@/services/dashboardService';
 import { dataPrefetchService } from '@/services/dataPrefetchService';
