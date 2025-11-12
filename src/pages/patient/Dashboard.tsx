@@ -533,58 +533,7 @@ const PatientDashboard = () => {
     if (!user?.id) return;
 
     console.log('⚠️ Real-time subscriptions for all appointments disabled (Supabase removed)');
-    return;
-
-    /* OLD SUPABASE CODE - REMOVED
-    console.log('🔄 Setting up real-time subscription for all appointments');
-
-    const subscription = supabase
-      .channel('all-appointments')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'consultations'
-        },
-        (payload) => {
-          console.log('📡 Real-time ALL appointments update received:', payload);
-          console.log('📡 Event type:', payload.eventType);
-          console.log('📡 Table:', payload.table);
-          console.log('📡 New record:', payload.new);
-          console.log('📡 Old record:', payload.old);
-          console.log('📡 Patient ID in new record:', (payload.new as any)?.patient_id);
-          console.log('📡 Doctor ID in new record:', (payload.new as any)?.doctor_id);
-          // Reload ALL appointments when any change occurs to any appointment
-          reloadAllAppointments();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'appointments'
-        },
-        (payload) => {
-          console.log('📡 Real-time ALL appointments update received:', payload);
-          // Reload ALL appointments when any change occurs to any appointment
-          reloadAllAppointments();
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Successfully subscribed to all appointments');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Error subscribing to all appointments');
-        }
-      });
-
-    return () => {
-      console.log('🔄 Cleaning up all appointments subscription');
-      subscription.unsubscribe();
-    };
-    */
+    // OLD SUPABASE CODE REMOVED - Real-time subscriptions disabled
   }, [user?.id]);
 
   // Debug: Add test functions to window for manual testing
@@ -868,7 +817,8 @@ const PatientDashboard = () => {
             console.log('📅 Scheduling appointment:', formData);
             
             // Reload appointments to show the new one immediately
-            await reloadAppointments();
+            // TODO: Implement Django API call to reload appointments
+            // await reloadAppointments(); // Disabled - Supabase removed
             
             // Show success message
             toast({
