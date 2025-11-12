@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import type { Notification } from '../types/notification';
 import { 
   getUserNotifications, 

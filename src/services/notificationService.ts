@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import type { Notification, CreateNotificationData } from '../types/notification';
 
 export interface NotificationResponse {

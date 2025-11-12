@@ -1,6 +1,6 @@
 // AI Analysis Service that connects to Django backend
 // This replaces the old complex frontend AI analysis with backend integration
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 
 // Backend URL configuration
 // Use environment variable or fallback to localhost for development
@@ -268,9 +268,9 @@ export const analyzeHealthRecordWithAI = async (recordData: {
   uploadedBy?: string;
 }): Promise<AIAnalysisResult> => {
   try {
-    // Get current user ID from Supabase
-    const { data: { user } } = await supabase.auth.getUser();
-    const currentUserId = user?.id || 'unknown-user';
+    // Get current user ID from localStorage (Django JWT token)
+    // TODO: Get from AuthContext instead
+    const currentUserId = 'unknown-user'; // Will be replaced with Django user ID
     
     // Route to the correct analysis endpoint based on record type
     let response;

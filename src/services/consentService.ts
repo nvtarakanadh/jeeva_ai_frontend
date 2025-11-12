@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+// Supabase removed - using Django API only
 import { ConsentRequest, ConsentStatus, RecordType } from '@/types';
 import { 
   createConsentRequestNotification,
