@@ -162,15 +162,22 @@ class AuthService {
   }
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/auth/register/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout (Railway/Render free tier can be slow)
+    
+    try {
+      console.log('🔐 Attempting registration for:', data.email);
+      const response = await fetch(`${API_BASE_URL}/api/auth/register/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
+      if (!response.ok) {
       let errorData;
       try {
         errorData = await response.json();
@@ -216,6 +223,16 @@ class AuthService {
     const result: AuthResponse = await response.json();
     this.setTokens(result.tokens.access, result.tokens.refresh);
     return result;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Registration timeout. The server is taking too long to respond. This may be because the backend is spinning up (free tier) or there is a network issue. Please try again.');
+      }
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error(`Cannot connect to server. Please check if the backend is running at ${API_BASE_URL}`);
+      }
+      throw error;
+    }
   }
 
   async logout(): Promise<void> {
