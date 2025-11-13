@@ -710,12 +710,12 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
         testDatabaseQuery: async () => {
           console.log('🧪 Testing database query directly...');
           if (formData.doctor_id && formData.date) {
+            // Supabase removed - using Django API only
+            console.warn('⚠️ testDatabaseQuery disabled - Supabase removed');
+            return [];
+            
+            /* OLD SUPABASE CODE - REMOVED
             try {
-              // Supabase removed - using Django API only
-              console.warn('⚠️ testDatabaseQuery disabled - Supabase removed');
-              return [];
-              
-              /* OLD SUPABASE CODE - REMOVED
               const { data, error } = await supabase
                 .from('consultations')
                 .select('*')
@@ -728,6 +728,7 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
             } catch (err) {
               console.error('Error in direct database query:', err);
             }
+            */
           } else {
             console.log('No doctor or date selected for database test');
           }
