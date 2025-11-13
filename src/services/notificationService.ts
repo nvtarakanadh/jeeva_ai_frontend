@@ -12,8 +12,13 @@ export interface NotificationResponse {
   created_at: string;
 }
 
-// Get user notifications
+// Get user notifications - DISABLED (Supabase removed, Django API not implemented yet)
 export const getUserNotifications = async (userId: string, limit: number = 50): Promise<Notification[]> => {
+  // TODO: Implement Django API call to fetch notifications
+  console.warn('⚠️ getUserNotifications disabled - Supabase removed, Django API not implemented yet');
+  return [];
+  
+  /* OLD SUPABASE CODE - REMOVED
   try {
     const { data, error } = await supabase
       .from('notifications' as any)
@@ -47,10 +52,16 @@ export const getUserNotifications = async (userId: string, limit: number = 50): 
     console.error('Error fetching notifications:', error);
     return []; // Return empty array instead of throwing
   }
+  */
 };
 
-// Mark notification as read
+// Mark notification as read - DISABLED (Supabase removed, Django API not implemented yet)
 export const markNotificationAsRead = async (notificationId: string): Promise<boolean> => {
+  // TODO: Implement Django API call to mark notification as read
+  console.warn('⚠️ markNotificationAsRead disabled - Supabase removed, Django API not implemented yet');
+  return true; // Return true to avoid breaking the UI
+  
+  /* OLD SUPABASE CODE - REMOVED
   try {
     const { error } = await supabase
       .from('notifications' as any)
@@ -69,10 +80,16 @@ export const markNotificationAsRead = async (notificationId: string): Promise<bo
     console.error('Error marking notification as read:', error);
     return false;
   }
+  */
 };
 
-// Mark all notifications as read for user
+// Mark all notifications as read for user - DISABLED (Supabase removed, Django API not implemented yet)
 export const markAllNotificationsAsRead = async (userId: string): Promise<number> => {
+  // TODO: Implement Django API call to mark all notifications as read
+  console.warn('⚠️ markAllNotificationsAsRead disabled - Supabase removed, Django API not implemented yet');
+  return 0;
+  
+  /* OLD SUPABASE CODE - REMOVED
   try {
     const { data, error } = await supabase
       .from('notifications' as any)
@@ -93,10 +110,16 @@ export const markAllNotificationsAsRead = async (userId: string): Promise<number
     console.error('Error marking all notifications as read:', error);
     return 0;
   }
+  */
 };
 
-// Create a new notification
+// Create a new notification - DISABLED (Supabase removed, Django API not implemented yet)
 export const createNotification = async (notificationData: CreateNotificationData): Promise<string | null> => {
+  // TODO: Implement Django API call to create notification
+  console.warn('⚠️ createNotification disabled - Supabase removed, Django API not implemented yet');
+  return null;
+  
+  /* OLD SUPABASE CODE - REMOVED
   try {
     console.log('🔔 Creating notification with data:', notificationData);
     
@@ -135,10 +158,16 @@ export const createNotification = async (notificationData: CreateNotificationDat
     console.error('❌ Error creating notification:', error);
     return null;
   }
+  */
 };
 
-// Delete notification
+// Delete notification - DISABLED (Supabase removed, Django API not implemented yet)
 export const deleteNotification = async (notificationId: string): Promise<boolean> => {
+  // TODO: Implement Django API call to delete notification
+  console.warn('⚠️ deleteNotification disabled - Supabase removed, Django API not implemented yet');
+  return true; // Return true to avoid breaking the UI
+  
+  /* OLD SUPABASE CODE - REMOVED
   try {
     const { error } = await supabase
       .from('notifications' as any)
@@ -157,10 +186,16 @@ export const deleteNotification = async (notificationId: string): Promise<boolea
     console.error('Error deleting notification:', error);
     return false;
   }
+  */
 };
 
-// Get unread count
+// Get unread count - DISABLED (Supabase removed, Django API not implemented yet)
 export const getUnreadCount = async (userId: string): Promise<number> => {
+  // TODO: Implement Django API call to get unread count
+  console.warn('⚠️ getUnreadCount disabled - Supabase removed, Django API not implemented yet');
+  return 0;
+  
+  /* OLD SUPABASE CODE - REMOVED
   try {
     const { count, error } = await supabase
       .from('notifications' as any)
@@ -180,6 +215,7 @@ export const getUnreadCount = async (userId: string): Promise<number> => {
     console.error('Error getting unread count:', error);
     return 0;
   }
+  */
 };
 
 // Notification creation helpers for specific events
@@ -502,8 +538,12 @@ export class RealtimeNotificationService {
     }
   }
 
-  // Subscribe to all notifications (for admin purposes)
+  // Subscribe to all notifications (for admin purposes) - DISABLED (Supabase removed)
   subscribeToAllNotifications(callback: (notification: any) => void) {
+    console.warn('⚠️ subscribeToAllNotifications disabled - Supabase removed');
+    return null;
+    
+    /* OLD SUPABASE CODE - REMOVED
     const channelName = 'all_notifications';
     
     if (this.subscriptions.has(channelName)) {
@@ -528,6 +568,7 @@ export class RealtimeNotificationService {
 
     this.subscriptions.set(channelName, subscription);
     return subscription;
+    */
   }
 
   // Unsubscribe from all notifications
