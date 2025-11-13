@@ -744,55 +744,6 @@ export const HealthRecords = () => {
       setIsDeleting(null);
     }
   };
-              break; // If successful, break out of the loop
-            } catch (bucketError) {
-              console.log(`❌ Failed to delete from bucket ${bucket}:`, bucketError);
-              // Continue to next bucket
-            }
-          }
-        } catch (storageError) {
-          console.warn('⚠️ Could not delete file from storage:', storageError);
-          // Continue with database deletion even if storage deletion fails
-        }
-      } else {
-        console.log('ℹ️ No file to delete from storage');
-      }
-
-      // Delete the record from the database
-      console.log('🗑️ Deleting record from database...');
-      const { error: deleteError } = await supabase
-        .from('health_records')
-        .delete()
-        .eq('id', recordId)
-        .eq('user_id', session.user.id);
-
-      console.log('🗑️ Database delete result:', { deleteError });
-
-      if (deleteError) {
-        console.error('❌ Error deleting record from database:', deleteError);
-        throw deleteError;
-      }
-
-      console.log('✅ Record deleted successfully, refreshing records...');
-
-      // Refresh records
-      await fetchHealthRecords();
-
-      toast({
-        title: "Record deleted",
-        description: "Your health record has been deleted successfully.",
-      });
-    } catch (error: any) {
-      console.error('❌ Delete failed:', error);
-      toast({
-        title: "Delete failed",
-        description: error.message || "There was an error deleting your record.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeleting(null);
-    }
-  };
 
   const FileViewer = () => {
     if (!viewingFile) return null;
