@@ -7,7 +7,9 @@ import { Brain, Activity, AlertTriangle, Lightbulb, TrendingUp, Heart, X, Refres
 import { InlineLoadingSpinner } from '@/components/ui/loading-spinner';
 import { AIAnalysis } from '@/types';
 import { getAIInsights } from '@/services/aiInsightsService';
-// Supabase removed - using Django API only
+import { useAuth } from '@/contexts/AuthContext';
+import { getAnalysis } from '@/services/aiAnalysisService';
+// Django API only
 
 interface AIAnalysisModalProps {
   isOpen: boolean;
@@ -40,6 +42,7 @@ export const AIAnalysisModal: React.FC<AIAnalysisModalProps> = ({
   });
   console.log('🔍 AIAnalysisModal render - isOpen:', isOpen);
   
+  const { user } = useAuth();
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,74 +55,36 @@ export const AIAnalysisModal: React.FC<AIAnalysisModalProps> = ({
     try {
       console.log('🔍 Fetching AI analysis for record:', recordId);
       
-      // Use patientId if provided (for doctor view), otherwise use current user ID
-      let targetUserId: string;
-      
-      if (patientId) {
-        // Doctor viewing patient's analysis
-        targetUserId = patientId;
-        console.log('🔍 Doctor view: Fetching AI insights for patient:', patientId);
-        console.log('🔍 Doctor view: patientId type:', typeof patientId);
-      } else {
-        // Patient viewing their own analysis
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error('User not authenticated');
-        }
-        targetUserId = user.id;
-        console.log('🔍 Patient view: Fetching AI insights for user:', user.id);
-        console.log('🔍 Patient view: user.id type:', typeof user.id);
+      if (!user) {
+        throw new Error('User not authenticated');
       }
       
-      // Fetch AI insights from Supabase
-      console.log('🔍 About to call getAIInsights with targetUserId:', targetUserId);
-      const insights = await getAIInsights(targetUserId);
+      // Fetch AI analysis from Django API
+      console.log('🔍 About to call getAnalysis with recordId:', recordId);
+      const response = await getAnalysis(recordId);
       
-      console.log('🔍 All insights for user:', insights);
-      console.log('🔍 Looking for record ID:', recordId);
-      console.log('🔍 Record ID type:', typeof recordId);
-      console.log('🔍 Total insights found:', insights.length);
+      console.log('🔍 Analysis response:', response);
       
-      // Log all record IDs in the insights for comparison
-      if (insights.length > 0) {
-        console.log('🔍 All record IDs in insights:', insights.map(i => ({ id: i.record_id, type: typeof i.record_id })));
-      } else {
-        console.log('🔍 No insights found for user:', targetUserId);
-      }
-      
-      // Find the insight for this specific record
-      const recordInsight = insights.find(insight => {
-        console.log('🔍 Comparing insight record_id:', insight.record_id, 'with target:', recordId);
-        console.log('🔍 Types - insight:', typeof insight.record_id, 'target:', typeof recordId);
-        console.log('🔍 Exact match:', insight.record_id === recordId);
-        return insight.record_id === recordId;
-      });
-      
-      console.log('🔍 Found matching insight:', recordInsight);
-      
-      if (recordInsight) {
-        // Parse the stored content (it's stored as JSON string)
-        const analysisData = JSON.parse(recordInsight.content);
+      if (response && response.analysis) {
+        const analysisData = response.analysis;
         
         const formattedAnalysis: AIAnalysis = {
-          id: recordInsight.id,
+          id: response.record_id || recordId,
           recordId: recordId,
           summary: analysisData.summary || 'AI Analysis Summary',
-          simplifiedSummary: analysisData.simplifiedSummary || analysisData.simplified_summary,
-          keyFindings: analysisData.keyFindings || [],
-          riskWarnings: analysisData.riskWarnings || [],
+          simplifiedSummary: analysisData.simplifiedSummary || analysisData.simplified_summary || '',
+          keyFindings: analysisData.keyFindings || analysisData.key_findings || [],
+          riskWarnings: analysisData.riskWarnings || analysisData.risk_warnings || [],
           recommendations: analysisData.recommendations || [],
-          predictiveInsights: analysisData.predictiveInsights || [],
-          ai_disclaimer: analysisData.ai_disclaimer || '',
+          predictiveInsights: analysisData.predictiveInsights || analysisData.predictive_insights || [],
+          ai_disclaimer: analysisData.ai_disclaimer || analysisData.disclaimer || '',
           disclaimer: analysisData.disclaimer || '',
-          confidence: 0.0, // Confidence score removed
-          processedAt: new Date(recordInsight.created_at),
+          confidence: analysisData.confidence || 0.0,
+          processedAt: new Date(analysisData.created_at || new Date()),
           recordTitle: recordTitle,
         };
         
         console.log('📊 Formatted analysis:', formattedAnalysis);
-        console.log('🔍 Key Findings:', analysisData.keyFindings);
-        console.log('🔍 Raw analysis data:', analysisData);
         setAnalysis(formattedAnalysis);
       } else {
         console.log('ℹ️ No AI analysis found for this record');
@@ -128,11 +93,11 @@ export const AIAnalysisModal: React.FC<AIAnalysisModalProps> = ({
       }
     } catch (error: any) {
       console.error('❌ Error fetching analysis:', error);
-      setError(`Failed to load analysis: ${error.message}`);
+      setError(`Failed to load analysis: ${error.message || 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
-  }, [recordId, patientId]);
+  }, [recordId, user, recordTitle]);
 
   // Fetch existing analysis when modal opens
   useEffect(() => {

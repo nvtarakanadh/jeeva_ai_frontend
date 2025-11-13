@@ -152,12 +152,26 @@ export const analyzeHealthRecord = async (request: HealthRecordAnalysisRequest):
     console.log('🔍 Calling Django backend with request:', request);
     console.log('🔍 API URL:', `${API_BASE_URL}/analyze/health-record/`);
     
+    // Convert empty string file_url to null to avoid validation errors
+    const requestData = { ...request };
+    if (requestData.file_url === '' || requestData.file_url === undefined) {
+      requestData.file_url = undefined;
+    }
+    
+    // If file_url is relative, convert to absolute URL
+    if (requestData.file_url && requestData.file_url.startsWith('/')) {
+      const apiBase = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'http://localhost:8000';
+      requestData.file_url = `${apiBase}${requestData.file_url}`;
+    }
+    
+    const token = localStorage.getItem('access_token');
     const response = await fetch(`${API_BASE_URL}/analyze/health-record/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify(requestData),
     });
 
     console.log('🔍 Response status:', response.status);
@@ -186,13 +200,18 @@ export const analyzeHealthRecord = async (request: HealthRecordAnalysisRequest):
  */
 export const getAnalysis = async (recordId: string): Promise<AnalysisResponse> => {
   try {
+    const token = localStorage.getItem('access_token');
     const response = await fetch(`${API_BASE_URL}/analysis/${recordId}/`, {
       method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to get analysis');
+      const errorData = await response.json().catch(() => ({ error: 'Failed to get analysis' }));
+      throw new Error(errorData.error || errorData.detail || 'Failed to get analysis');
     }
 
     return await response.json();
