@@ -305,9 +305,9 @@ class AuthService {
     }
   }
 
-  async requestPasswordReset(email: string): Promise<void> {
+  async requestPasswordReset(email: string): Promise<{ message: string; reset_link?: string; note?: string }> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout (Render free tier can be slow)
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout (Railway free tier can be slow)
     
     try {
       console.log('🔐 Requesting password reset from:', `${API_BASE_URL}/api/auth/password/reset/request/`);
@@ -350,6 +350,17 @@ class AuthService {
         console.error('Password reset error details:', errorData);
         throw new Error(errorMessage);
       }
+
+      // Parse successful response
+      const data = await response.json();
+      
+      // Log reset link if provided (for debugging when email fails)
+      if (data.reset_link) {
+        console.log('🔗 Password reset link:', data.reset_link);
+        console.log('💡 If email is not received, use this link to reset your password');
+      }
+      
+      return data;
     } catch (error: any) {
       clearTimeout(timeoutId);
       

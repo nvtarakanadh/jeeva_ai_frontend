@@ -58,14 +58,24 @@ const Auth = () => {
         setTimeout(() => reject(new Error('Request is taking too long. This might be a CORS issue. Please check backend configuration.')), 65000);
       });
       
-      await Promise.race([
+      const result = await Promise.race([
         authService.requestPasswordReset(forgotPasswordEmail),
         timeoutPromise
-      ]) as Promise<void>;
+      ]) as { message: string; reset_link?: string; note?: string };
+
+      // Show reset link if email might not be received
+      let description = "Check your email for password reset instructions.";
+      if (result.reset_link) {
+        description += `\n\nIf email is not received, use this link:\n${result.reset_link}`;
+        // Also log to console for easy copy-paste
+        console.log('🔗 Password Reset Link:', result.reset_link);
+        console.log('💡 Copy the link above if email is not received');
+      }
 
       toast({
         title: "Reset email sent",
-        description: "Check your email for password reset instructions.",
+        description: description,
+        duration: 10000, // Show longer so user can copy link
       });
       
       setIsForgotPasswordOpen(false);
