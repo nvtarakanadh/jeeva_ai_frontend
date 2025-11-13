@@ -12,6 +12,7 @@ import PatientSchedulingModal, { PatientScheduleData } from '@/components/calend
 import DayViewModal, { DayViewEvent } from '@/components/calendar/DayViewModal';
 import { getRecentActivity, formatTimeAgo } from '@/services/activityService';
 import { toast } from '@/hooks/use-toast';
+import { authService } from '@/services/authService';
 
 const PatientDashboard = () => {
   const { user } = useAuth();
@@ -357,7 +358,6 @@ const PatientDashboard = () => {
         // Load doctors from Django API
         let doctorsData: any[] = [];
         try {
-          const { authService } = await import('@/services/authService');
           doctorsData = await authService.getDoctors();
         } catch (error) {
           console.error('Error loading doctors:', error);
