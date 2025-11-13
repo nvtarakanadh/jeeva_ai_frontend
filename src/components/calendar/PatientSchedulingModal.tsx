@@ -771,12 +771,12 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
             return null;
           }
           
+          // Supabase removed - using Django API only
+          console.warn('⚠️ testRealBlockedSlotsFromDatabase disabled - Supabase removed');
+          return null;
+          
+          /* OLD SUPABASE CODE - REMOVED
           try {
-            // Supabase removed - using Django API only
-            console.warn('⚠️ testRealBlockedSlotsFromDatabase disabled - Supabase removed');
-            return null;
-            
-            /* OLD SUPABASE CODE - REMOVED
             console.log('🧪 Fetching consultations for doctor:', formData.doctor_id, 'date:', formData.date);
             
             // Fetch ALL consultations for this doctor on this date
