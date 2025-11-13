@@ -7,13 +7,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Patient } from '@/types';
+import { Patient, Doctor } from '@/types';
 import { toast } from '@/hooks/use-toast';
-import { User, Calendar, Phone, Mail, Heart, AlertTriangle, Shield } from 'lucide-react';
+import { User, Calendar, Phone, Mail, Heart, AlertTriangle, Shield, Briefcase, Award, Building } from 'lucide-react';
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
   const { t } = useLanguage();
+  const isDoctor = user?.role === 'doctor';
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,6 +28,10 @@ const Profile = () => {
     emergencyContactName: user && 'emergencyContact' in user ? user.emergencyContact?.name || '' : '',
     emergencyContactPhone: user && 'emergencyContact' in user ? user.emergencyContact?.phone || '' : '',
     emergencyContactRelationship: user && 'emergencyContact' in user ? user.emergencyContact?.relationship || '' : '',
+    // Doctor-specific fields
+    specialization: isDoctor && 'specialization' in user ? user.specialization || '' : '',
+    licenseNumber: isDoctor && 'licenseNumber' in user ? user.licenseNumber || '' : '',
+    hospitalAffiliation: isDoctor && 'hospitalAffiliation' in user ? user.hospitalAffiliation || '' : '',
   });
 
   const handleSave = async () => {
@@ -35,11 +40,11 @@ const Profile = () => {
     try {
       setIsSaving(true);
       
-      const updates: Partial<Patient> = {
+      const updates: Partial<Patient | Doctor> = {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
-        dateOfBirth: new Date(formData.dateOfBirth),
+        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined,
         gender: formData.gender as 'male' | 'female' | 'other',
         bloodType: formData.bloodType,
         allergies: formData.allergies.split(',').map(a => a.trim()).filter(Boolean),
@@ -49,6 +54,13 @@ const Profile = () => {
           relationship: formData.emergencyContactRelationship,
         },
       };
+      
+      // Add doctor-specific fields if user is a doctor
+      if (isDoctor) {
+        (updates as Partial<Doctor>).specialization = formData.specialization;
+        (updates as Partial<Doctor>).licenseNumber = formData.licenseNumber;
+        (updates as Partial<Doctor>).hospitalAffiliation = formData.hospitalAffiliation;
+      }
 
       await updateProfile(updates);
       setIsEditing(false);
@@ -75,6 +87,10 @@ const Profile = () => {
         emergencyContactName: user && 'emergencyContact' in user ? user.emergencyContact?.name || '' : '',
         emergencyContactPhone: user && 'emergencyContact' in user ? user.emergencyContact?.phone || '' : '',
         emergencyContactRelationship: user && 'emergencyContact' in user ? user.emergencyContact?.relationship || '' : '',
+        // Doctor-specific fields
+        specialization: user && user.role === 'doctor' && 'specialization' in user ? user.specialization || '' : '',
+        licenseNumber: user && user.role === 'doctor' && 'licenseNumber' in user ? user.licenseNumber || '' : '',
+        hospitalAffiliation: user && user.role === 'doctor' && 'hospitalAffiliation' in user ? user.hospitalAffiliation || '' : '',
       });
     }
   }, [user]);
@@ -220,50 +236,101 @@ const Profile = () => {
         </CardContent>
       </Card>
 
-      {/* Emergency Contact */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            {t('profile.emergencyContact')}
-          </CardTitle>
-          <CardDescription>
-            {t('profile.emergencyContactDescription')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="emergencyContactName">{t('profile.contactName')}</Label>
-              <Input
-                id="emergencyContactName"
-                value={formData.emergencyContactName}
-                onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
-                disabled={!isEditing}
-              />
+      {/* Doctor-specific Information */}
+      {isDoctor && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Professional Information
+            </CardTitle>
+            <CardDescription>
+              Your professional details and credentials
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="specialization">Specialization</Label>
+                <Input
+                  id="specialization"
+                  value={formData.specialization}
+                  onChange={(e) => handleInputChange('specialization', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="e.g., Cardiology, Pediatrics"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="licenseNumber">License Number</Label>
+                <Input
+                  id="licenseNumber"
+                  value={formData.licenseNumber}
+                  onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="Medical license number"
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="hospitalAffiliation">Hospital/Affiliation</Label>
+                <Input
+                  id="hospitalAffiliation"
+                  value={formData.hospitalAffiliation}
+                  onChange={(e) => handleInputChange('hospitalAffiliation', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder="Hospital or clinic name"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="emergencyContactPhone">{t('profile.contactPhone')}</Label>
-              <Input
-                id="emergencyContactPhone"
-                value={formData.emergencyContactPhone}
-                onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
-                disabled={!isEditing}
-              />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Emergency Contact - Only for patients */}
+      {!isDoctor && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              {t('profile.emergencyContact')}
+            </CardTitle>
+            <CardDescription>
+              {t('profile.emergencyContactDescription')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="emergencyContactName">{t('profile.contactName')}</Label>
+                <Input
+                  id="emergencyContactName"
+                  value={formData.emergencyContactName}
+                  onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
+                  disabled={!isEditing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="emergencyContactPhone">{t('profile.contactPhone')}</Label>
+                <Input
+                  id="emergencyContactPhone"
+                  value={formData.emergencyContactPhone}
+                  onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
+                  disabled={!isEditing}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="emergencyContactRelationship">{t('profile.relationship')}</Label>
+                <Input
+                  id="emergencyContactRelationship"
+                  value={formData.emergencyContactRelationship}
+                  onChange={(e) => handleInputChange('emergencyContactRelationship', e.target.value)}
+                  disabled={!isEditing}
+                  placeholder={t('profile.relationshipPlaceholder')}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="emergencyContactRelationship">{t('profile.relationship')}</Label>
-              <Input
-                id="emergencyContactRelationship"
-                value={formData.emergencyContactRelationship}
-                onChange={(e) => handleInputChange('emergencyContactRelationship', e.target.value)}
-                disabled={!isEditing}
-                placeholder={t('profile.relationshipPlaceholder')}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Privacy & Security */}
       <Card>
