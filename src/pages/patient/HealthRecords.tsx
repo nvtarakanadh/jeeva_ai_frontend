@@ -740,11 +740,17 @@ export const HealthRecords = () => {
         title: "Record deleted",
         description: "The health record has been successfully deleted.",
       });
-              console.log(`📁 Trying bucket: ${bucket}`);
-              await supabase.storage
-                .from(bucket)
-                .remove([filePath]);
-              console.log(`✅ File deleted from bucket: ${bucket}`);
+    } catch (error: any) {
+      console.error('❌ Error deleting health record:', error);
+      toast({
+        title: "Deletion failed",
+        description: error.message || "There was an error deleting the record.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(null);
+    }
+  };
               break; // If successful, break out of the loop
             } catch (bucketError) {
               console.log(`❌ Failed to delete from bucket ${bucket}:`, bucketError);
