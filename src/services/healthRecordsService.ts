@@ -1,19 +1,22 @@
-// Supabase removed - using Django API only
-import { createHealthRecordUploadNotification } from './notificationService';
+// Django API service for health records
+import { authService } from './authService';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export interface HealthRecord {
   id: string;
   title: string;
   description: string | null;
   record_type: string;
-  service_date: string;
-  provider_name: string | null;
+  record_date: string | null;
   file_name: string | null;
   file_url: string | null;
   tags: string[] | null;
   created_at: string;
   updated_at: string;
-  user_id: string;
+  patient?: number;
+  uploaded_by?: string;
+  uploaded_by_profile?: number;
 }
 
 export interface HealthRecordSummary {
@@ -22,20 +25,28 @@ export interface HealthRecordSummary {
   recordTypes: { [key: string]: number };
 }
 
+const getAuthHeaders = () => {
+  const token = authService.getAccessToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+  };
+};
+
 export const getHealthRecords = async (userId: string): Promise<HealthRecord[]> => {
   try {
-    const { data, error } = await supabase
-      .from('health_records')
-      .select('*')
-      .eq('user_id', userId)
-      .order('service_date', { ascending: false });
+    const response = await fetch(`${API_BASE_URL}/api/ai/health-records/`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
 
-    if (error) {
-      console.error('Error fetching health records:', error);
-      throw error;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to fetch health records' }));
+      throw new Error(errorData.error || errorData.detail || 'Failed to fetch health records');
     }
 
-    return data || [];
+    const data = await response.json();
+    return data.results || [];
   } catch (error) {
     console.error('Error in getHealthRecords:', error);
     throw error;
@@ -66,88 +77,75 @@ export const createHealthRecord = async (recordData: Omit<HealthRecord, 'id' | '
   try {
     console.log('🏥 Starting health record creation with data:', recordData);
     
-    const { data, error } = await supabase
-      .from('health_records')
-      .insert(recordData)
-      .select()
-      .single();
+    // First, upload file if provided
+    let fileUrl = recordData.file_url;
+    let fileName = recordData.file_name;
+    
+    // Note: File upload will be handled separately in the component
+    // For now, we'll use the file_url if provided
+    
+    // Prepare record data for API
+    const apiData: any = {
+      title: recordData.title,
+      description: recordData.description || '',
+      record_type: recordData.record_type,
+      record_date: recordData.record_date || new Date().toISOString(),
+      file_url: fileUrl || null,
+      file_name: fileName || null,
+      tags: recordData.tags || [],
+    };
+    
+    const response = await fetch(`${API_BASE_URL}/api/ai/health-records/`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(apiData),
+    });
 
-    if (error) {
-      console.error('❌ Error creating health record:', error);
-      throw error;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to create health record' }));
+      throw new Error(errorData.error || errorData.detail || 'Failed to create health record');
     }
 
-    console.log('✅ Health record created successfully:', data.id);
-
-    // Get patient profile info for notification
-    console.log('🔍 Looking up patient profile for user_id:', recordData.user_id);
-    const { data: patientProfile, error: patientError } = await supabase
-      .from('profiles')
-      .select('full_name, id')
-      .eq('user_id', recordData.user_id)
-      .single();
-
-    console.log('🔍 Patient profile lookup result:', { patientProfile, patientError });
-
-    if (patientProfile && !patientError) {
-      console.log('✅ Patient profile found:', patientProfile);
-      
-      // Find assigned doctors for this patient
-      console.log('🔍 Looking up assigned doctors for patient_id:', recordData.user_id);
-      const { data: assignedDoctors, error: doctorsError } = await supabase
-        .from('patient_access')
-        .select(`
-          doctor_id,
-          profiles!patient_access_doctor_id_fkey (
-            user_id,
-            full_name
-          )
-        `)
-        .eq('patient_id', recordData.user_id)
-        .eq('status', 'active');
-
-      console.log('🔍 Assigned doctors lookup result:', { assignedDoctors, doctorsError });
-
-      if (assignedDoctors && !doctorsError) {
-        console.log(`✅ Found ${assignedDoctors.length} assigned doctors:`, assignedDoctors);
-        
-        // Send notification to each assigned doctor
-        for (const assignment of assignedDoctors) {
-          if (assignment.profiles?.user_id) {
-            console.log('🔔 Sending notification to doctor:', {
-              doctor_user_id: assignment.profiles.user_id,
-              doctor_profile_id: assignment.doctor_id,
-              patient_name: patientProfile.full_name,
-              record_title: recordData.title
-            });
-            
-            try {
-              const notificationId = await createHealthRecordUploadNotification(
-                assignment.profiles.user_id,
-                assignment.doctor_id,
-                patientProfile.full_name,
-                recordData.title
-              );
-              console.log('✅ Notification sent successfully with ID:', notificationId);
-            } catch (notificationError) {
-              console.error('❌ Failed to send notification:', notificationError);
-            }
-          } else {
-            console.log('⚠️ Doctor profile missing user_id:', assignment);
-          }
-        }
-      } else {
-        console.log('⚠️ No assigned doctors found or error:', doctorsError);
-        console.log('💡 This means the patient has no active doctor assignments in patient_access table');
-      }
-    } else {
-      console.log('⚠️ Patient profile not found or error:', patientError);
-      console.log('💡 This means the patient profile does not exist in profiles table');
-    }
-
-    return data;
+    const data = await response.json();
+    console.log('✅ Health record created successfully:', data.record?.id || data.id);
+    
+    // Note: Notifications will be handled by the backend or a separate service
+    // For now, we'll skip the notification logic that was using Supabase
+    
+    return data.record || data;
   } catch (error) {
     console.error('❌ Error in createHealthRecord:', error);
+    throw error;
+  }
+};
+
+export const uploadHealthRecordFile = async (file: File): Promise<{ file_url: string; file_name: string; file_size: number }> => {
+  try {
+    const token = authService.getAccessToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(`${API_BASE_URL}/api/ai/health-records/upload/`, {
+      method: 'POST',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to upload file' }));
+      throw new Error(errorData.error || errorData.detail || 'Failed to upload file');
+    }
+
+    const data = await response.json();
+    return {
+      file_url: data.file_url,
+      file_name: data.file_name,
+      file_size: data.file_size,
+    };
+  } catch (error) {
+    console.error('❌ Error in uploadHealthRecordFile:', error);
     throw error;
   }
 };

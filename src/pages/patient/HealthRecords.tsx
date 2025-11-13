@@ -10,14 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Upload, FileText, Image, Download, Brain, Search, Filter, Eye, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { HealthRecord, RecordType } from '@/types';
-// Supabase removed - using Django API only
+// Django API only
 import { useAuth } from '@/contexts/AuthContext';
-import { createHealthRecord } from '@/services/healthRecordsService';
+import { createHealthRecord, getHealthRecords, uploadHealthRecordFile } from '@/services/healthRecordsService';
 import { analyzeHealthRecordWithAI, AIAnalysisResult } from '@/services/aiAnalysisService';
 import AIAnalysisModal from '@/components/ai/AIAnalysisModal';
 
 export const HealthRecords = () => {
-  const { user, session } = useAuth();
+  const { user } = useAuth();
   const [records, setRecords] = useState<HealthRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,17 +47,17 @@ export const HealthRecords = () => {
 
   // Fetch health records on component mount
   useEffect(() => {
-    if (user && session) {
+    if (user) {
       console.log('🔄 HealthRecords component mounted, fetching records...');
       fetchHealthRecords();
     } else {
-      console.log('⚠️ No user or session, skipping health records fetch');
+      console.log('⚠️ No user, skipping health records fetch');
       setIsLoading(false);
     }
-  }, [user, session]);
+  }, [user]);
 
   const fetchHealthRecords = async () => {
-    if (!session) {
+    if (!user) {
       setIsLoading(false);
       return;
     }
@@ -66,32 +66,23 @@ export const HealthRecords = () => {
       setIsLoading(true);
       setError(null);
       
-      console.log('🔄 Fetching health records for user:', session.user.id);
+      console.log('🔄 Fetching health records for user:', user.id);
       
-      const { data, error } = await supabase
-        .from('health_records')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Database error:', error);
-        throw error;
-      }
+      const data = await getHealthRecords(user.id);
 
       console.log('✅ Health records fetched:', data?.length || 0);
 
       const formattedRecords: any[] = data?.map((record: any) => ({
         id: record.id,
-        patientId: record.user_id,
+        patientId: record.patient || user.id,
         title: record.title,
         type: record.record_type as RecordType,
         description: record.description,
         fileUrl: record.file_url,
         fileName: record.file_name,
-        recordDate: new Date(record.service_date),
+        recordDate: record.record_date ? new Date(record.record_date) : new Date(record.created_at),
         uploadedAt: new Date(record.created_at),
-        uploadedBy: record.user_id,
+        uploadedBy: record.uploaded_by || user.id,
         tags: record.tags || [],
         aiAnalysis: null, // We'll populate this separately if needed
       })) || [];
@@ -553,7 +544,7 @@ export const HealthRecords = () => {
       return;
     }
 
-    if (!session) {
+    if (!user) {
       toast({
         title: "Authentication required",
         description: "Please log in to upload records.",
@@ -568,35 +559,20 @@ export const HealthRecords = () => {
       let fileUrl: string | null = null;
       let fileName: string | null = null;
 
-      // Upload file to Supabase storage if selected
+      // Upload file to Django API if selected
       if (selectedFiles.length > 0) {
         const file = selectedFiles[0];
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${session.user.id}/${Date.now()}.${fileExt}`;
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('health-records')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('health-records')
-          .getPublicUrl(filePath);
-
-        fileUrl = urlData.publicUrl;
-        fileName = file.name;
+        const uploadResult = await uploadHealthRecordFile(file);
+        fileUrl = uploadResult.file_url;
+        fileName = uploadResult.file_name;
       }
 
-      // Save record to database using our service function (which includes notifications)
+      // Save record to database using Django API
       const data = await createHealthRecord({
-        user_id: session.user.id,
         title: uploadData.title,
         record_type: uploadData.recordType,
-        description: uploadData.description,
-        service_date: uploadData.date,
-        provider_name: uploadData.provider || null,
+        description: uploadData.description || null,
+        record_date: uploadData.date || new Date().toISOString(),
         file_url: fileUrl,
         file_name: fileName,
         tags: [],
@@ -615,10 +591,13 @@ export const HealthRecords = () => {
       });
       setSelectedFiles([]);
 
+      // Get the record ID from the response
+      const recordId = (data as any).id || (data as any).record?.id;
+      
       // Trigger AI analysis in the background
-      console.log('🚀 Starting AI analysis trigger for record:', data.id);
+      console.log('🚀 Starting AI analysis trigger for record:', recordId);
       console.log('📋 Record data for AI:', {
-        id: data.id,
+        id: recordId,
         title: uploadData.title,
         recordType: uploadData.recordType,
         description: uploadData.description,
@@ -627,7 +606,9 @@ export const HealthRecords = () => {
       });
       
       // Trigger AI analysis in the background
-      triggerAIAnalysis(data.id, uploadData.title, uploadData.recordType, uploadData.description, fileUrl, fileName);
+      if (recordId) {
+        triggerAIAnalysis(recordId, uploadData.title, uploadData.recordType, uploadData.description, fileUrl || null, fileName || null);
+      }
 
       toast({
         title: "Upload successful",
