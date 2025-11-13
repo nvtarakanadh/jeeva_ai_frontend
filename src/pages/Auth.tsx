@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/types';
@@ -17,6 +18,8 @@ const Auth = () => {
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
   const [isResetLoading, setIsResetLoading] = useState(false);
+  const [resetLink, setResetLink] = useState<string | null>(null);
+  const [isResetLinkDialogOpen, setIsResetLinkDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -63,19 +66,21 @@ const Auth = () => {
         timeoutPromise
       ]) as { message: string; reset_link?: string; note?: string };
 
-      // Show reset link if email might not be received
-      let description = "Check your email for password reset instructions.";
+      // Show reset link prominently
       if (result.reset_link) {
-        description += `\n\nIf email is not received, use this link:\n${result.reset_link}`;
+        setResetLink(result.reset_link);
+        setIsResetLinkDialogOpen(true);
         // Also log to console for easy copy-paste
         console.log('🔗 Password Reset Link:', result.reset_link);
         console.log('💡 Copy the link above if email is not received');
       }
 
       toast({
-        title: "Reset email sent",
-        description: description,
-        duration: 10000, // Show longer so user can copy link
+        title: "Reset link generated",
+        description: result.reset_link 
+          ? "Check your email. If email is not received, the reset link is shown below."
+          : "Check your email for password reset instructions.",
+        duration: 10000,
       });
       
       setIsForgotPasswordOpen(false);
@@ -400,6 +405,63 @@ const Auth = () => {
               </Dialog>
             </div>
           )}
+
+          {/* Reset Link Dialog - Shows reset link if email might not be received */}
+          <AlertDialog open={isResetLinkDialogOpen} onOpenChange={setIsResetLinkDialogOpen}>
+            <AlertDialogContent className="max-w-2xl">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Password Reset Link</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {resetLink ? (
+                    <div className="space-y-4 mt-4">
+                      <p className="text-sm text-muted-foreground">
+                        Check your email for the password reset link. If you don't receive it, use the link below:
+                      </p>
+                      <div className="bg-muted p-4 rounded-lg border">
+                        <p className="text-xs text-muted-foreground mb-2 font-medium">Reset Link:</p>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-sm break-all bg-background p-2 rounded border">
+                            {resetLink}
+                          </code>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              navigator.clipboard.writeText(resetLink);
+                              toast({
+                                title: "Copied!",
+                                description: "Reset link copied to clipboard",
+                              });
+                            }}
+                          >
+                            Copy
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => {
+                            window.open(resetLink, '_blank');
+                            setIsResetLinkDialogOpen(false);
+                          }}
+                          className="flex-1"
+                        >
+                          Open Reset Link
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p>Loading reset link...</p>
+                  )}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction onClick={() => setIsResetLinkDialogOpen(false)}>
+                  Close
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <div className="text-center">
             <Button 
