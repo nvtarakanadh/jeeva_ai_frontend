@@ -901,12 +901,12 @@ const PatientSchedulingModal: React.FC<PatientSchedulingModalProps> = ({
         },
         checkAllBlockedTimeEvents: async () => {
           console.log('🧪 Checking ALL blocked time events in database...');
+          // Supabase removed - using Django API only
+          console.warn('⚠️ checkAllBlockedTimeEvents disabled - Supabase removed');
+          return null;
+          
+          /* OLD SUPABASE CODE - REMOVED
           try {
-            // Supabase removed - using Django API only
-            console.warn('⚠️ checkAllBlockedTimeEvents disabled - Supabase removed');
-            return null;
-            
-            /* OLD SUPABASE CODE - REMOVED
             // Fetch ALL blocked time events (patient_id is null) for ALL doctors and dates
             const { data: allBlockedEvents, error } = await supabase
               .from('consultations')
