@@ -669,35 +669,28 @@ export const HealthRecords = () => {
   };
 
   const openFileViewer = async (fileUrl: string, fileName: string) => {
+    console.log('🔍 Opening file viewer for:', fileUrl, fileName);
+    
     try {
-      const fileType = getFileType(fileName);
-      
-      // If it's already a full URL, use it directly
       let displayUrl = fileUrl;
       
-      // Check if it's a Supabase storage path and try different bucket names
-      if (fileUrl && !fileUrl.startsWith('http')) {
-        // Try different possible bucket names
-        const possibleBuckets = ['medical-files', 'prescriptions', 'consultation-notes', 'health-records', 'files'];
-        
-        for (const bucket of possibleBuckets) {
-          try {
-            const { data } = supabase.storage
-              .from(bucket)
-              .getPublicUrl(fileUrl);
-            
-            if (data.publicUrl) {
-              displayUrl = data.publicUrl;
-              break;
-            }
-          } catch (bucketError) {
-            // Continue to next bucket
-          }
-        }
+      // Convert relative URLs to absolute URLs
+      if (fileUrl && fileUrl.startsWith('/')) {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'http://localhost:8000';
+        displayUrl = `${API_BASE_URL}${fileUrl}`;
       }
+      
+      // Ensure HTTPS for production
+      if (displayUrl && displayUrl.startsWith('http://') && window.location.protocol === 'https:') {
+        displayUrl = displayUrl.replace('http://', 'https://');
+      }
+      
+      // Determine file type
+      const fileType = getFileType(fileName);
       
       setViewingFile({ url: displayUrl, name: fileName, type: fileType });
     } catch (error) {
+      console.error('Error opening file viewer:', error);
       // Still try to open with the original URL
       const fileType = getFileType(fileName);
       setViewingFile({ url: fileUrl, name: fileName, type: fileType });
