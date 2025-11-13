@@ -11,8 +11,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from '@/hooks/use-toast';
 import { FileText, Plus, Save, Eye, EyeOff, Download, Shield } from 'lucide-react';
 import { format } from 'date-fns';
-// Supabase removed - using Django API only
+// Django API only
 import { useAuth } from '@/contexts/AuthContext';
+import { authService } from '@/services/authService';
 
 interface ConsentFormData {
   title: string;
@@ -56,19 +57,19 @@ const ConsentForm: React.FC<ConsentFormProps> = ({ onFormSaved }) => {
 
   const loadPatients = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, metadata')
-        .eq('role', 'patient')
-        .order('full_name');
+      // Only doctors can load patients
+      if (user?.role !== 'doctor') {
+        console.warn('Only doctors can load patients');
+        setPatients([]);
+        return;
+      }
 
-      if (error) throw error;
-
+      const patientsData = await authService.getPatients();
       setPatients(
-        (data || []).map((p) => ({
+        patientsData.map((p) => ({
           id: p.id,
-          name: p.full_name || 'Unknown Patient',
-          mrn: (p.metadata as any)?.mrn || ''
+          name: p.name || 'Unknown Patient',
+          mrn: '' // MRN not available in current API response
         }))
       );
     } catch (error) {
