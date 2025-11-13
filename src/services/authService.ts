@@ -455,6 +455,54 @@ class AuthService {
   isAuthenticated(): boolean {
     return !!this.getAccessToken();
   }
+
+  async getDoctors(): Promise<Array<{ id: string; name: string; specialization?: string }>> {
+    try {
+      const token = this.getAccessToken();
+      const response = await fetch(`${API_BASE_URL}/api/auth/doctors/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to fetch doctors' }));
+        throw new Error(errorData.error || errorData.detail || 'Failed to fetch doctors');
+      }
+
+      const data = await response.json();
+      return data.results || [];
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
+      throw error;
+    }
+  }
+
+  async getPatients(): Promise<Array<{ id: string; name: string; email?: string; phone?: string }>> {
+    try {
+      const token = this.getAccessToken();
+      const response = await fetch(`${API_BASE_URL}/api/auth/patients/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to fetch patients' }));
+        throw new Error(errorData.error || errorData.detail || 'Failed to fetch patients');
+      }
+
+      const data = await response.json();
+      return data.results || [];
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+      throw error;
+    }
+  }
 }
 
 export const authService = new AuthService();
