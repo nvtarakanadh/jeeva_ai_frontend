@@ -364,7 +364,7 @@ class AuthService {
       }
       
       if (error.name === 'AbortError') {
-        throw new Error('Request timeout. The server is taking too long to respond. This may be because the backend is spinning up (Render free tier) or CORS is blocking the request. Please check backend CORS configuration.');
+        throw new Error('Request timeout. The server is taking too long to respond. This may be because the backend is spinning up (free tier) or there is a network issue. Please try again.');
       }
       
       // Re-throw if it's already a proper Error with message
