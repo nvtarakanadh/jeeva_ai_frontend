@@ -661,10 +661,12 @@ export const HealthRecords = () => {
   };
 
   const getFileType = (fileName: string) => {
-    const extension = fileName?.split('.').pop()?.toLowerCase();
-    if (['pdf'].includes(extension || '')) return 'pdf';
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension || '')) return 'image';
-    if (['doc', 'docx'].includes(extension || '')) return 'document';
+    if (!fileName) return 'file';
+    const extension = fileName.split('.').pop()?.toLowerCase() || '';
+    console.log('🔍 Determining file type for:', fileName, 'extension:', extension);
+    if (['pdf'].includes(extension)) return 'pdf';
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) return 'image';
+    if (['doc', 'docx'].includes(extension)) return 'document';
     return 'file';
   };
 
@@ -685,15 +687,18 @@ export const HealthRecords = () => {
         displayUrl = displayUrl.replace('http://', 'https://');
       }
       
-      // Determine file type
-      const fileType = getFileType(fileName);
+      // Determine file type from file name or URL
+      const fileType = getFileType(fileName || fileUrl);
       
-      setViewingFile({ url: displayUrl, name: fileName, type: fileType });
+      console.log('📄 File type determined:', fileType, 'for file:', fileName);
+      console.log('🔗 Display URL:', displayUrl);
+      
+      setViewingFile({ url: displayUrl, name: fileName || 'Unknown File', type: fileType });
     } catch (error) {
-      console.error('Error opening file viewer:', error);
+      console.error('❌ Error opening file viewer:', error);
       // Still try to open with the original URL
-      const fileType = getFileType(fileName);
-      setViewingFile({ url: fileUrl, name: fileName, type: fileType });
+      const fileType = getFileType(fileName || fileUrl);
+      setViewingFile({ url: fileUrl, name: fileName || 'Unknown File', type: fileType });
     }
   };
 
