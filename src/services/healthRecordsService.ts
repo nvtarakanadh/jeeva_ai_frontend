@@ -139,13 +139,36 @@ export const uploadHealthRecordFile = async (file: File): Promise<{ file_url: st
     }
 
     const data = await response.json();
+    // Convert relative URL to absolute URL if needed
+    let fileUrl = data.file_url;
+    if (fileUrl && fileUrl.startsWith('/')) {
+      fileUrl = `${API_BASE_URL}${fileUrl}`;
+    }
+    
     return {
-      file_url: data.file_url,
+      file_url: fileUrl,
       file_name: data.file_name,
       file_size: data.file_size,
     };
   } catch (error) {
     console.error('❌ Error in uploadHealthRecordFile:', error);
+    throw error;
+  }
+};
+
+export const deleteHealthRecord = async (recordId: string): Promise<void> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/ai/health-records/${recordId}/`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to delete health record' }));
+      throw new Error(errorData.error || errorData.detail || 'Failed to delete health record');
+    }
+  } catch (error) {
+    console.error('❌ Error in deleteHealthRecord:', error);
     throw error;
   }
 };

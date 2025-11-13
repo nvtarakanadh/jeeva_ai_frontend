@@ -12,7 +12,7 @@ import { toast } from '@/hooks/use-toast';
 import { HealthRecord, RecordType } from '@/types';
 // Django API only
 import { useAuth } from '@/contexts/AuthContext';
-import { createHealthRecord, getHealthRecords, uploadHealthRecordFile } from '@/services/healthRecordsService';
+import { createHealthRecord, getHealthRecords, uploadHealthRecordFile, deleteHealthRecord } from '@/services/healthRecordsService';
 import { analyzeHealthRecordWithAI, AIAnalysisResult } from '@/services/aiAnalysisService';
 import AIAnalysisModal from '@/components/ai/AIAnalysisModal';
 
@@ -72,20 +72,31 @@ export const HealthRecords = () => {
 
       console.log('✅ Health records fetched:', data?.length || 0);
 
-      const formattedRecords: any[] = data?.map((record: any) => ({
-        id: record.id,
-        patientId: record.patient || user.id,
-        title: record.title,
-        type: record.record_type as RecordType,
-        description: record.description,
-        fileUrl: record.file_url,
-        fileName: record.file_name,
-        recordDate: record.record_date ? new Date(record.record_date) : new Date(record.created_at),
-        uploadedAt: new Date(record.created_at),
-        uploadedBy: record.uploaded_by || user.id,
-        tags: record.tags || [],
-        aiAnalysis: null, // We'll populate this separately if needed
-      })) || [];
+      // Convert relative file URLs to absolute URLs
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'http://localhost:8000';
+      
+      const formattedRecords: any[] = data?.map((record: any) => {
+        let fileUrl = record.file_url;
+        // Convert relative URLs to absolute HTTPS URLs
+        if (fileUrl && fileUrl.startsWith('/')) {
+          fileUrl = `${API_BASE_URL}${fileUrl}`;
+        }
+        
+        return {
+          id: record.id,
+          patientId: record.patient || user.id,
+          title: record.title,
+          type: record.record_type as RecordType,
+          description: record.description,
+          fileUrl: fileUrl,
+          fileName: record.file_name,
+          recordDate: record.record_date ? new Date(record.record_date) : new Date(record.created_at),
+          uploadedAt: new Date(record.created_at),
+          uploadedBy: record.uploaded_by || user.id,
+          tags: record.tags || [],
+          aiAnalysis: null, // We'll populate this separately if needed
+        };
+      }) || [];
 
       setRecords(formattedRecords);
       console.log('✅ Records formatted and set:', formattedRecords.length);
@@ -706,7 +717,7 @@ export const HealthRecords = () => {
   };
 
   const handleDeleteRecord = async (recordId: string) => {
-    if (!session) {
+    if (!user) {
       toast({
         title: "Authentication required",
         description: "Please log in to delete records.",
@@ -719,39 +730,16 @@ export const HealthRecords = () => {
     setIsDeleting(recordId);
 
     try {
-      // First, get the record to find the file path
-      console.log('📋 Fetching record details...');
-      const { data: record, error: fetchError } = await supabase
-        .from('health_records')
-        .select('file_url, file_name')
-        .eq('id', recordId)
-        .eq('user_id', session.user.id)
-        .single();
+      // Delete the record using Django API
+      await deleteHealthRecord(recordId);
 
-      console.log('📋 Record fetch result:', { record, fetchError });
+      // Refresh records
+      await fetchHealthRecords();
 
-      if (fetchError) {
-        console.error('❌ Error fetching record:', fetchError);
-        throw fetchError;
-      }
-
-      if (!record) {
-        throw new Error('Record not found or you do not have permission to delete it');
-      }
-
-      // Delete the file from storage if it exists
-      if ((record as any).file_url) {
-        console.log('📁 Deleting file from storage:', (record as any).file_url);
-        try {
-          // Extract the file path from the URL or use the file_url directly
-          const filePath = (record as any).file_url.includes('/') ? (record as any).file_url.split('/').slice(-2).join('/') : (record as any).file_url;
-          console.log('📁 Extracted file path:', filePath);
-          
-          // Try different possible bucket names
-          const possibleBuckets = ['medical-files', 'prescriptions', 'consultation-notes', 'health-records', 'files'];
-          
-          for (const bucket of possibleBuckets) {
-            try {
+      toast({
+        title: "Record deleted",
+        description: "The health record has been successfully deleted.",
+      });
               console.log(`📁 Trying bucket: ${bucket}`);
               await supabase.storage
                 .from(bucket)
