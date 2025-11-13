@@ -152,14 +152,19 @@ const DoctorDashboard = () => {
   }, [doctorProfileId]);
 
 
-  // Load patients for dropdown with memoization - DISABLED (Supabase removed)
+  // Load patients for dropdown with memoization
   const loadPatients = useCallback(async () => {
     if (!doctorProfileId) return;
     
     try {
-      // TODO: Implement Django API call to fetch patients
-      console.warn('⚠️ loadPatients disabled - Supabase removed, need Django API');
-      setPatients([]);
+      const { authService } = await import('@/services/authService');
+      const patientsData = await authService.getPatients();
+      setPatients(patientsData.map((patient: any) => ({
+        id: patient.id,
+        name: patient.name,
+        email: patient.email,
+        phone: patient.phone || '',
+      })));
     } catch (error) {
       console.error('Error loading patients:', error);
       // Fallback to empty array if there's an error

@@ -354,12 +354,14 @@ const PatientDashboard = () => {
         // Load recent activity
         const recentActivityData = await getRecentActivity(user.id);
 
-        // Load doctors
-        const { data: doctorsData, error: doctorsError } = await supabase
-          .from('profiles')
-          .select('id, full_name, specialization')
-          .eq('role', 'doctor')
-          .order('full_name', { ascending: true });
+        // Load doctors from Django API
+        let doctorsData: any[] = [];
+        try {
+          const { authService } = await import('@/services/authService');
+          doctorsData = await authService.getDoctors();
+        } catch (error) {
+          console.error('Error loading doctors:', error);
+        }
 
         // Load test centers
         const { data: testCentersData, error: testCentersError } = await supabase
@@ -440,7 +442,7 @@ const PatientDashboard = () => {
         setRecentActivity(recentActivityData);
         setDoctors((doctorsData || []).map((doctor: any) => ({
           id: doctor.id,
-          name: doctor.full_name,
+          name: doctor.name,
           specialization: doctor.specialization
         })));
         setTestCenters((testCentersData || []).map((center: any) => ({
