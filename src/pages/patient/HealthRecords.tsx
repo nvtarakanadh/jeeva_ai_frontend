@@ -785,7 +785,26 @@ export const HealthRecords = () => {
                       textAlign: 'center'
                     }}
                     onError={(e) => {
-                      e.currentTarget.style.display = 'none';
+                      console.error('❌ Error loading image:', viewingFile.url);
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      // Show error message
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = `
+                          <div class="text-center p-4">
+                            <p class="text-red-500 mb-2 font-medium">Failed to load image</p>
+                            <p class="text-sm text-gray-500 mb-4">${viewingFile.name}</p>
+                            <p class="text-xs text-gray-400 mb-4 break-all">URL: ${viewingFile.url}</p>
+                            <button onclick="window.open('${viewingFile.url}', '_blank')" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                              Open in New Tab
+                            </button>
+                          </div>
+                        `;
+                      }
+                    }}
+                    onLoad={() => {
+                      console.log('✅ Image loaded successfully:', viewingFile.url);
                     }}
                   />
                 </div>
@@ -900,9 +919,15 @@ export const HealthRecords = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="prescription">Prescription</SelectItem>
-                  <SelectItem value="lab_report">Lab Report</SelectItem>
+                  <SelectItem value="lab_test">Lab Test</SelectItem>
+                  <SelectItem value="imaging">Imaging</SelectItem>
+                  <SelectItem value="consultation">Consultation</SelectItem>
+                  <SelectItem value="vaccination">Vaccination</SelectItem>
+                  <SelectItem value="xray">X-Ray</SelectItem>
                   <SelectItem value="mri">MRI</SelectItem>
                   <SelectItem value="ct_scan">CT Scan</SelectItem>
+                  <SelectItem value="ultrasound">Ultrasound</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>

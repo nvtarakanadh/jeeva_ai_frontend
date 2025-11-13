@@ -103,7 +103,11 @@ export const createHealthRecord = async (recordData: Omit<HealthRecord, 'id' | '
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Failed to create health record' }));
-      throw new Error(errorData.error || errorData.detail || 'Failed to create health record');
+      console.error('❌ Health record creation error:', errorData);
+      // Include validation details in error message
+      const errorMessage = errorData.error || errorData.detail || 'Failed to create health record';
+      const details = errorData.details ? ` Details: ${JSON.stringify(errorData.details)}` : '';
+      throw new Error(errorMessage + details);
     }
 
     const data = await response.json();
